@@ -74,11 +74,18 @@ final class DialPlan: NSObject {
         super.init()
     }
 
-    @nonobjc func apply(to number: String, fromHistory: Bool = false) throws -> String {
+    @nonobjc func apply(to number: String, fromHistory: Bool = false, plusSubstitution: String? = nil) throws -> String {
         guard !rules.isEmpty else { return number }
         guard !number.isEmpty, number.count <= 128,
               Set(number).isSubset(of: Self.dialCharacters) else { throw Failure.blocked }
         if fromHistory {
+            // History contains the final routed value, including the account's plus substitution.
+            if let prefix = plusSubstitution, number.hasPrefix(prefix) {
+                let beforeSubstitution = "+" + number.dropFirst(prefix.count)
+                if (try? apply(to: beforeSubstitution, fromHistory: true)) == beforeSubstitution {
+                    return number
+                }
+            }
             // History stores routed numbers, not the original input. Validate an inverse
             // against the ordered plan so an already-produced result is not rewritten.
             for rule in rules where rule.contains(where: { $0.replacement != nil }) {
@@ -148,10 +155,10 @@ final class DialPlan: NSObject {
         return atom.characters?.contains(char) ?? true
     }
 
-    @objc(transformNumber:accountID:fromHistory:error:)
-    static func transform(number: String, accountID: String, fromHistory: Bool) throws -> String {
+    @objc(transformNumber:accountID:fromHistory:plusSubstitution:error:)
+    static func transform(number: String, accountID: String, fromHistory: Bool, plusSubstitution: String?) throws -> String {
         let accounts = UserDefaults.standard.array(forKey: UserDefaultsKeys.accounts) as? [[String: Any]] ?? []
         let plan = accounts.first { $0[AKSIPAccountKeys.uuid] as? String == accountID }?[settingsKey] as? String ?? ""
-        return try DialPlan(plan).apply(to: number, fromHistory: fromHistory)
+        return try DialPlan(plan).apply(to: number, fromHistory: fromHistory, plusSubstitution: plusSubstitution)
     }
 }

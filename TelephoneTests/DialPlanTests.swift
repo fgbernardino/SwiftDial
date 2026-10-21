@@ -66,6 +66,20 @@ final class DialPlanTests: XCTestCase {
         XCTAssertNil(try DialPlan(example).originalNumber(for: "sip:118@example.com"))
     }
 
+    func testHistoryRecognizesPlusSubstitutedPlanOutputs() throws {
+        let plan = try DialPlan("<0:+>x.")
+        XCTAssertEqual(try plan.apply(to: "0123"), "+123")
+        XCTAssertEqual(try plan.apply(to: "00123", fromHistory: true, plusSubstitution: "00"), "00123")
+        XCTAssertEqual(try plan.apply(to: "123", fromHistory: true, plusSubstitution: ""), "123")
+        // Manual calls and accounts without plus substitution retain the plan's normal behavior.
+        XCTAssertEqual(try plan.apply(to: "00123", plusSubstitution: "00"), "+0123")
+        XCTAssertEqual(try plan.apply(to: "00123", fromHistory: true), "+0123")
+        XCTAssertEqual(try DialPlan("+x.").apply(to: "00123", fromHistory: true, plusSubstitution: "00"), "00123")
+        // A later rule that produces plus must not bypass an earlier matching rule.
+        XCTAssertEqual(try DialPlan("<0:9>x.|<0:+>x.").apply(to: "00123", fromHistory: true, plusSubstitution: "00"), "90123")
+        XCTAssertThrowsError(try plan.apply(to: "99123", fromHistory: true, plusSubstitution: "00"))
+    }
+
     func testInvalidPlansFailClosed() {
         for text in ["xxx|", "|xxx", ".x", "x..", "[9-2]", "[]", "[", "<0>", "<0:1", "<:>",
                      "<0:1>.", "(xxx", "xxx)", "x{3}", "<0:sip:>", String(repeating: "x", count: 2049)] {

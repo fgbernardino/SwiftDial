@@ -287,11 +287,12 @@ static NSString * const kRussian = @"ru";
     }
     
     // Keep explicit SIP destinations intact; numeric history on this account uses its plan.
-    if (destinationURI.host.length == 0 ||
-        (fromHistory && [destinationURI.host isEqualToString:self.account.uri.host] &&
-         [destinationURI.user ak_isTelephoneNumber])) {
+    if ([destinationURI.user ak_isTelephoneNumber] &&
+        (destinationURI.host.length == 0 ||
+         (fromHistory && [destinationURI.host isEqualToString:self.account.uri.host]))) {
         NSError *error;
-        NSString *number = [DialPlan transformNumber:destinationURI.user accountID:self.account.uuid fromHistory:fromHistory error:&error];
+        NSString *number = [DialPlan transformNumber:destinationURI.user accountID:self.account.uuid fromHistory:fromHistory
+                                  plusSubstitution:self.substitutesPlusCharacter ? self.plusCharacterSubstitution : nil error:&error];
         if (number == nil) {
             NSAlert *alert = [[NSAlert alloc] init];
             alert.messageText = NSLocalizedString(@"Call blocked", @"Dial plan blocked a call");

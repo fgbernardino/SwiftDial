@@ -22,6 +22,35 @@ import XCTest
 
 @MainActor
 final class CallHistoryViewPresenterTests: XCTestCase {
+    func testReadsSplitPreferenceAgainWhenHistoryReloads() async {
+        let defaults = UserDefaults.standard
+        let formatKey = UserDefaultsKeys.formatTelephoneNumbers
+        let splitKey = UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits
+        let oldFormat = defaults.object(forKey: formatKey)
+        let oldSplit = defaults.object(forKey: splitKey)
+        defer {
+            defaults.set(oldFormat, forKey: formatKey)
+            defaults.set(oldSplit, forKey: splitKey)
+        }
+        defaults.set(true, forKey: formatKey)
+        let contact = MatchedContact(name: "", address: .phone(number: "+12125551234", label: "mobile"))
+        let record = ContactCallHistoryRecord(origin: CallHistoryRecordTestFactory().makeRecord(number: 1), contact: contact)
+        let expectations = [false: "+1 (212) 555-1234", true: "+1 (212) 555-12-34"]
+        for split in [false, true, false] {
+            defaults.set(split, forKey: splitKey)
+            let shown = expectation(description: "History rendered with split=\(split)")
+            let view = CallHistoryViewSpy { records in
+                XCTAssertEqual(records.first?.contact.title, expectations[split])
+                XCTAssertEqual(records.first?.contact.address, "+12125551234")
+                shown.fulfill()
+            }
+            let presenter = CallHistoryViewPresenter(view: view, dateFormatter: ShortRelativeDateTimeFormatter(),
+                                                     durationFormatter: DurationFormatter())
+            await presenter.update(records: [record])
+            await fulfillment(of: [shown], timeout: 1)
+        }
+    }
+
     func testShowsRecordsOnRecordsUpdate() async {
         let factory = CallHistoryRecordTestFactory()
         let record1 = factory.makeRecord(number: 1)

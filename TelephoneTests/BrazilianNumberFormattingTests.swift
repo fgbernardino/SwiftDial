@@ -55,4 +55,20 @@ final class BrazilianNumberFormattingTests: XCTestCase {
         let presentation = PresentationContact(contact: contact, color: .labelColor, formatsPhoneNumbers: true)
         XCTAssertEqual(presentation.title, "11999998888@example.com")
     }
+
+    func testHistoryHonorsSplitPreferenceWithoutChangingStoredNumber() {
+        for (number, split, unsplit) in [("+12125551234", "+1 (212) 555-12-34", "+1 (212) 555-1234"),
+                                         ("+74951234567", "+7 (495) 123-45-67", "+7 (495) 123-4567")] {
+            for name in ["", "Maria"] {
+                let contact = MatchedContact(name: name, address: .phone(number: number, label: "mobile"))
+                for (format, splits, expected) in [(true, true, split), (true, false, unsplit), (false, true, number)] {
+                    let presentation = PresentationContact(contact: contact, color: .labelColor,
+                                                           formatsPhoneNumbers: format, splitsLastFourDigits: splits)
+                    XCTAssertEqual(name.isEmpty ? presentation.title : presentation.tooltip, expected)
+                    XCTAssertEqual(presentation.address, number)
+                    if !name.isEmpty { XCTAssertEqual(presentation.title, name) }
+                }
+            }
+        }
+    }
 }

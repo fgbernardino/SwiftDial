@@ -35,6 +35,7 @@ final class CallHistoryViewController: NSViewController {
     private var records: [PresentationCallHistoryRecord] = []
     private let pasteboard = NSPasteboard.general
     private var formatsPhoneNumbers = UserDefaults.standard.bool(forKey: UserDefaultsKeys.formatTelephoneNumbers)
+    private var splitsLastFourDigits = UserDefaults.standard.bool(forKey: UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits)
     @IBOutlet private weak var tableView: NSTableView!
 
     init() {
@@ -81,8 +82,10 @@ final class CallHistoryViewController: NSViewController {
     @objc nonisolated private func formattingSettingsDidChange() {
         Task { @MainActor in
             let enabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.formatTelephoneNumbers)
-            guard enabled != formatsPhoneNumbers else { return }
+            let splitsDigits = UserDefaults.standard.bool(forKey: UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits)
+            guard enabled != formatsPhoneNumbers || splitsDigits != splitsLastFourDigits else { return }
             formatsPhoneNumbers = enabled
+            splitsLastFourDigits = splitsDigits
             target?.shouldReloadData()
         }
     }

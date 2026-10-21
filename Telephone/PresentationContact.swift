@@ -62,10 +62,12 @@ extension PresentationContact {
 }
 
 extension PresentationContact {
-    convenience init(contact: MatchedContact, color: NSColor, formatsPhoneNumbers: Bool = false) {
+    convenience init(contact: MatchedContact, color: NSColor, formatsPhoneNumbers: Bool = false, splitsLastFourDigits: Bool = false) {
         switch contact.address {
         case let .phone(number, label):
-            let display = formatsPhoneNumbers ? (AKTelephoneNumberFormatter().string(for: number) ?? number) : number
+            let formatter = AKTelephoneNumberFormatter()
+            formatter.splitsLastFourDigits = splitsLastFourDigits
+            let display = formatsPhoneNumbers ? (formatter.string(for: number) ?? number) : number
             if contact.name.isEmpty {
                 self.init(title: display, tooltip: "", label: label, color: color, address: number)
             } else {

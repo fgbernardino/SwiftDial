@@ -36,15 +36,17 @@ nonisolated extension CallHistoryViewPresenter: ContactCallHistoryRecordGetAllUs
     func update(records: [ContactCallHistoryRecord]) {
         Task { @MainActor in
             let formatsNumbers = UserDefaults.standard.bool(forKey: UserDefaultsKeys.formatTelephoneNumbers)
-            let result = records.map { makeRecord(from: $0, formatsPhoneNumbers: formatsNumbers) }
+            let splitsDigits = UserDefaults.standard.bool(forKey: UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits)
+            let result = records.map { makeRecord(from: $0, formatsPhoneNumbers: formatsNumbers, splitsLastFourDigits: splitsDigits) }
             view.show(result)
         }
     }
 
-    private func makeRecord(from record: ContactCallHistoryRecord, formatsPhoneNumbers: Bool) -> PresentationCallHistoryRecord {
+    private func makeRecord(from record: ContactCallHistoryRecord, formatsPhoneNumbers: Bool, splitsLastFourDigits: Bool) -> PresentationCallHistoryRecord {
         return PresentationCallHistoryRecord(
             identifier: record.origin.identifier,
-            contact: PresentationContact(contact: record.contact, color: contactColor(for: record), formatsPhoneNumbers: formatsPhoneNumbers),
+            contact: PresentationContact(contact: record.contact, color: contactColor(for: record), formatsPhoneNumbers: formatsPhoneNumbers,
+                                         splitsLastFourDigits: splitsLastFourDigits),
             date: dateFormatter.string(from: record.origin.date),
             duration: durationFormatter.string(from: TimeInterval(record.origin.duration)) ?? "",
             isIncoming: record.origin.isIncoming,

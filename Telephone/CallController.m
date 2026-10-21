@@ -132,7 +132,10 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 - (NSString *)formattedNumber {
     NSString *number = self.enteredCallDestination.length ? self.enteredCallDestination :
         (self.redialURI.user ?: self.call.remoteURI.user ?: @"");
-    return [[[AKTelephoneNumberFormatter alloc] init] stringForObjectValue:number] ?: number;
+    if (![self.defaults boolForKey:UserDefaultsKeys.formatTelephoneNumbers]) { return number; }
+    AKTelephoneNumberFormatter *formatter = [[AKTelephoneNumberFormatter alloc] init];
+    formatter.splitsLastFourDigits = [self.defaults boolForKey:UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits];
+    return [formatter stringForObjectValue:number] ?: number;
 }
 
 + (NSSet<NSString *> *)keyPathsForValuesAffectingContactName {

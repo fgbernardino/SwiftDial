@@ -286,10 +286,8 @@ static NSString * const kRussian = @"ru";
         [destinationURI setUser:[telephoneNumberFormatter telephoneNumberFromString:[destinationURI user]]];
     }
     
-    // Keep explicit SIP destinations intact; numeric history on this account uses its plan.
-    if ([destinationURI.user ak_isTelephoneNumber] &&
-        (destinationURI.host.length == 0 ||
-         (fromHistory && [destinationURI.host isEqualToString:self.account.uri.host]))) {
+    // History cannot distinguish explicit SIP input from an account-appended host; preserve both.
+    if ([destinationURI.user ak_isTelephoneNumber] && destinationURI.host.length == 0) {
         NSError *error;
         NSString *number = [DialPlan transformNumber:destinationURI.user accountID:self.account.uuid fromHistory:fromHistory
                                   plusSubstitution:self.substitutesPlusCharacter ? self.plusCharacterSubstitution : nil error:&error];
@@ -307,7 +305,7 @@ static NSString * const kRussian = @"ru";
     }
 
     // Replace plus character if needed.
-    if ([self substitutesPlusCharacter] &&
+    if (!(fromHistory && destinationURI.host.length > 0) && [self substitutesPlusCharacter] &&
         [[destinationURI user] hasPrefix:@"+"]) {
         [destinationURI setUser:[[destinationURI user]
                                  stringByReplacingCharactersInRange:NSMakeRange(0, 1)

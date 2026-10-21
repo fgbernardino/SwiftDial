@@ -38,7 +38,7 @@
                     <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5">
                         <rect key="frame" x="139" y="145" width="292" height="42"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" selectable="YES" sendsActionOnEndEditing="YES" title="Telefon konnte sich nicht in example.com anmelden. Ändern Sie Benutzername oder Passwort und versuchen Sie es erneut." id="6">
+                        <textFieldCell key="cell" selectable="YES" sendsActionOnEndEditing="YES" title="SwiftDial konnte sich nicht in example.com anmelden. Ändern Sie Benutzername oder Passwort und versuchen Sie es erneut." id="6">
                             <font key="font" metaFont="smallSystem"/>
                             <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>

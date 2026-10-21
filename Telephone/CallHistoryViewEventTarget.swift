@@ -20,26 +20,25 @@ import UseCases
 
 @MainActor
 final class CallHistoryViewEventTarget: NSObject {
+    let accountID: String
     private let recordsGet: UseCase
-    private let purchaseCheck: UseCase
     private let recordRemoveAll: UseCase
     private let recordRemove: CallHistoryRecordRemoveUseCaseFactory
     private let callMake: CallHistoryCallMakeUseCaseFactory
 
     init(recordsGet: UseCase,
-         purchaseCheck: UseCase,
          recordRemoveAll: UseCase,
          recordRemove: CallHistoryRecordRemoveUseCaseFactory,
-         callMake: CallHistoryCallMakeUseCaseFactory) {
+         callMake: CallHistoryCallMakeUseCaseFactory, accountID: String = "") {
+        self.accountID = accountID
         self.recordsGet = recordsGet
-        self.purchaseCheck = purchaseCheck
         self.recordRemoveAll = recordRemoveAll
         self.recordRemove = recordRemove
         self.callMake = callMake
     }
 
     func shouldReloadData() {
-        executeRecordGetAndPurchaseCheck()
+        reloadRecords()
     }
 
     func shouldRemoveAllRecords() {
@@ -54,30 +53,23 @@ final class CallHistoryViewEventTarget: NSObject {
         recordRemove.make(identifier: identifier).execute()
     }
 
-    private func executeRecordGetAndPurchaseCheck() {
+    private func reloadRecords() {
         recordsGet.execute()
-        purchaseCheck.execute()
     }
 }
 
 nonisolated extension CallHistoryViewEventTarget: CallHistoryEventTarget {
     func didUpdate(_ history: CallHistory) {
         Task {
-            await executeRecordGetAndPurchaseCheck()
+            await reloadRecords()
         }
-    }
-}
-
-extension CallHistoryViewEventTarget: StoreEventTarget {
-    func didPurchase() {
-        executeRecordGetAndPurchaseCheck()
     }
 }
 
 nonisolated extension CallHistoryViewEventTarget: DayChangeEventTarget {
     func dayDidChange() {
         Task {
-            await executeRecordGetAndPurchaseCheck()
+            await reloadRecords()
         }
     }
 }

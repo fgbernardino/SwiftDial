@@ -43,7 +43,7 @@ NSString * const AKAuthenticationFailureControllerDidChangeUsernameAndPasswordNo
 - (void)awakeFromNib {
     [[self  informativeText] setStringValue:
      [NSString stringWithFormat:
-      NSLocalizedString(@"Telephone was unable to login to %@. Change user name or password and try again.",
+      NSLocalizedString(@"SwiftDial was unable to login to %@. Change user name or password and try again.",
                         @"Registrar authentication failed."), self.accountController.account.registrar]];
     
     NSString *username = [[[self accountController] account] username];

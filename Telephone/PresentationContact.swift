@@ -62,13 +62,14 @@ extension PresentationContact {
 }
 
 extension PresentationContact {
-    convenience init(contact: MatchedContact, color: NSColor) {
+    convenience init(contact: MatchedContact, color: NSColor, formatsPhoneNumbers: Bool = false) {
         switch contact.address {
         case let .phone(number, label):
+            let display = formatsPhoneNumbers ? (AKTelephoneNumberFormatter().string(for: number) ?? number) : number
             if contact.name.isEmpty {
-                self.init(title: number, tooltip: "", label: label, color: color, address: number)
+                self.init(title: display, tooltip: "", label: label, color: color, address: number)
             } else {
-                self.init(title: contact.name, tooltip: number, label: label, color: color, address: number)
+                self.init(title: contact.name, tooltip: display, label: label, color: color, address: number)
             }
         case let .email(address, label):
             if contact.name.isEmpty {

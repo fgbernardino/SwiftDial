@@ -295,7 +295,7 @@ NS_ASSUME_NONNULL_END
 }
 
 - (void)makeCallTo:(URI *)uri label:(NSString *)label {
-    NSLog(@"Not calling %@", uri);
+    NSLog(@"Call not supported by this account adapter");
 }
 
 - (void)makeCallTo:(AKSIPURI *)destination completion:(void (^ _Nonnull)(AKSIPCall * _Nullable))completion {
@@ -304,7 +304,7 @@ NS_ASSUME_NONNULL_END
         if (success) {
             completion([self addCallWithInfo:call]);
         } else {
-            NSLog(@"Error making call to %@ via account %@", uri, self);
+            NSLog(@"Error making SIP call");
             completion(nil);
         }
     };

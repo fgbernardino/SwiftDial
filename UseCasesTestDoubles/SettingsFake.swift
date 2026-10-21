@@ -21,9 +21,6 @@ import UseCases
 
 @MainActor
 public final class SettingsFake {
-    public var date: Date = Date.distantPast
-    public var version = ""
-
     public var registeredDefaults: [String: Any] { return registered }
 
     private var dictionary: [String: Any] = [:]
@@ -83,5 +80,3 @@ extension SettingsFake: KeyValueSettings {
         }
     }
 }
-
-extension SettingsFake: PurchaseReminderSettings {}

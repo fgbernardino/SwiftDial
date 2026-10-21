@@ -19,6 +19,8 @@
 import Cocoa
 
 final class CallHistoryViewController: NSViewController {
+    @objc var correctNumber: ((String) -> Void)?
+
     @objc var keyView: NSView {
         return tableView
     }
@@ -32,6 +34,7 @@ final class CallHistoryViewController: NSViewController {
     }
     private var records: [PresentationCallHistoryRecord] = []
     private let pasteboard = NSPasteboard.general
+    private var formatsPhoneNumbers = UserDefaults.standard.bool(forKey: UserDefaultsKeys.formatTelephoneNumbers)
     @IBOutlet private weak var tableView: NSTableView!
 
     init() {
@@ -43,7 +46,54 @@ final class CallHistoryViewController: NSViewController {
     }
 
     override func viewDidLoad() {
+        super.viewDidLoad()
+        NotificationCenter.default.addObserver(self, selector: #selector(formattingSettingsDidChange),
+                                               name: UserDefaults.didChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(localContactsDidChange),
+                                               name: LocalContacts.changed, object: nil)
+        tableView.enclosingScrollView?.hasHorizontalScroller = false
+        tableView.enclosingScrollView?.horizontalScrollElasticity = .none
+        tableView.columnAutoresizingStyle = .sequentialColumnAutoresizingStyle
+        // The icon column is fixed; only the name column absorbs available width.
+        tableView.tableColumns[0].resizingMask = []
+        tableView.tableColumns[1].minWidth = 80
+        tableView.tableColumns[1].maxWidth = 10_000
+        tableView.tableColumns[1].resizingMask = .autoresizingMask
+        tableView.tableColumns[2].resizingMask = []
+        tableView.tableColumns[2].width = 140
+        let saveContact = NSMenuItem(title: NSLocalizedString("Save Contact…", comment: "Save contact from call history"),
+                                     action: #selector(saveContactFromHistory(_:)), keyEquivalent: "")
+        saveContact.target = self
+        tableView.menu?.insertItem(saveContact, at: 2)
+        let correct = NSMenuItem(title: NSLocalizedString("Correct Number", comment: "Edit a history number without calling"),
+                                 action: #selector(correctNumberFromHistory(_:)), keyEquivalent: "")
+        correct.target = self
+        tableView.menu?.insertItem(correct, at: 1)
         target?.shouldReloadData()
+    }
+
+    @objc func correctNumberFromHistory(_ sender: Any) {
+        let row = clickedOrSelectedRow()
+        guard records.indices.contains(row) else { return }
+        correctNumber?(records[row].contact.address)
+    }
+
+    @objc nonisolated private func formattingSettingsDidChange() {
+        Task { @MainActor in
+            let enabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.formatTelephoneNumbers)
+            guard enabled != formatsPhoneNumbers else { return }
+            formatsPhoneNumbers = enabled
+            target?.shouldReloadData()
+        }
+    }
+
+    @objc nonisolated private func localContactsDidChange() {
+        Task { @MainActor in target?.shouldReloadData() }
+    }
+
+    override func viewDidLayout() {
+        super.viewDidLayout()
+        tableView.sizeToFit()
     }
 
     override func keyDown(with event: NSEvent) {
@@ -74,6 +124,15 @@ final class CallHistoryViewController: NSViewController {
         guard clickedOrSelectedRow() != -1 else { return }
         pasteboard.clearContents()
         pasteboard.writeObjects([records[clickedOrSelectedRow()]])
+    }
+
+    @objc func saveContactFromHistory(_ sender: Any) {
+        let row = clickedOrSelectedRow()
+        guard records.indices.contains(row), let accountID = target?.accountID,
+              let number = records[row].sourceNumber,
+              let draft = LocalContacts.shared.draftFromHistory(number: number, accountID: accountID,
+                                                                isIncoming: records[row].isIncoming) else { return }
+        LocalContactsWindowController.shared.openDraft(contact: draft.contact, number: draft.number, needsReview: draft.needsReview)
     }
 
     @IBAction func delete(_ sender: Any) {
@@ -211,6 +270,15 @@ extension CallHistoryViewController: NSTableViewDelegate {
 extension CallHistoryViewController: NSMenuItemValidation {
     func validateMenuItem(_ item: NSMenuItem) -> Bool {
         switch item.action {
+        case #selector(correctNumberFromHistory(_:)):
+            let row = clickedOrSelectedRow()
+            return records.indices.contains(row) && !records[row].contact.address.isEmpty && correctNumber != nil
+        case #selector(saveContactFromHistory(_:)):
+            let row = clickedOrSelectedRow()
+            guard records.indices.contains(row), let accountID = target?.accountID,
+                  let number = records[row].sourceNumber else { return false }
+            return LocalContacts.shared.draftFromHistory(number: number, accountID: accountID,
+                                                         isIncoming: records[row].isIncoming) != nil
         case #selector(copy(_:)), #selector(makeCall), #selector(delete), #selector(deleteAll):
             return !records.isEmpty
         default:

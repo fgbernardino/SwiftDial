@@ -28,11 +28,12 @@
 
 @interface ActiveCallViewController () <NSMenuItemValidation>
 
-@property(nonatomic, getter=isShowingProgress) BOOL showingProgress;
-@property(nonatomic) NSTrackingArea *trackingArea;
-
 @property(nonatomic, weak) IBOutlet NSTextField *displayedNameField;
 @property(nonatomic, weak) IBOutlet NSTextField *statusField;
+@property(nonatomic, weak) IBOutlet NSTextField *numberField;
+@property(nonatomic, weak) IBOutlet NSTextField *durationField;
+@property(nonatomic, weak) IBOutlet NSButton *muteButton;
+@property(nonatomic, weak) IBOutlet NSButton *extensionTransferButton;
 
 @property(nonatomic) IBOutlet NSProgressIndicator *callProgressIndicator;
 @property(nonatomic) IBOutlet NSButton *hangUpButton;
@@ -60,6 +61,8 @@
 - (void)removeObservations {
     [[self displayedNameField] unbind:NSValueBinding];
     [[self statusField] unbind:NSValueBinding];
+    [self.numberField unbind:NSValueBinding];
+    [self.durationField unbind:NSValueBinding];
  }
 
 - (IBAction)hangUpCall:(id)sender {
@@ -72,9 +75,11 @@
 
 - (IBAction)toggleMicrophoneMute:(id)sender {
     [[self callController] toggleMicrophoneMute];
+    [self updateControls];
 }
 
 - (IBAction)showCallTransferSheet:(id)sender {
+    if (self.callController.call.state != kAKSIPCallConfirmedState || self.callController.call.isOnRemoteHold) { return; }
     if (![[self callController] isCallOnHold]) {
         [[self callController] toggleCallHold];
     }
@@ -106,57 +111,49 @@
 
 - (void)callTimerTick:(NSTimer *)theTimer {
     NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-    NSInteger seconds = (NSInteger)(now - ([[self callController] callStartTime]));
+    NSInteger seconds = MAX(0, (NSInteger)(now - self.callController.callStartTime));
+    [self updateControls];
     
     if (seconds < 3600) {
-        [[self callController] setStatus:[NSString stringWithFormat:@"%02ld:%02ld",
+        [[self callController] setElapsedTime:[NSString stringWithFormat:@"%02ld:%02ld",
                                           (seconds / 60) % 60, seconds % 60]];
     } else {
         [[self callController]
-         setStatus:[NSString stringWithFormat:@"%02ld:%02ld:%02ld",
-                    (seconds / 3600) % 24, (seconds / 60) % 60, seconds % 60]];
+         setElapsedTime:[NSString stringWithFormat:@"%02ld:%02ld:%02ld",
+                    seconds / 3600, (seconds / 60) % 60, seconds % 60]];
     }
+}
+
+- (void)updateControls {
+    AKSIPCall *call = self.callController.call;
+    BOOL connected = call != nil && call.state == kAKSIPCallConfirmedState;
+    self.muteButton.enabled = connected;
+    self.muteButton.title = call.isMicrophoneMuted ? NSLocalizedString(@"Unmute", @"Unmute. Call menu item.") : NSLocalizedString(@"Mute", @"Mute. Call menu item.");
+    self.muteButton.state = call.isMicrophoneMuted ? NSControlStateValueOn : NSControlStateValueOff;
+    self.extensionTransferButton.enabled = connected && !call.isOnRemoteHold;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.extensionTransferButton.title = NSLocalizedString(@"Transfer…", @"Transfer call to an extension.");
+    if (self.numberField != nil) {
+        self.hangUpButton.title = NSLocalizedString(@"End Call", @"End Call. Call menu item.");
+    }
+    [self updateControls];
 }
 
 - (void)showProgress {
-    if (!self.isShowingProgress) {
+    if (self.numberField != nil) {
         [self.callProgressIndicator startAnimation:self];
-        [self addTrackingArea];
-        self.showingProgress = YES;
     }
-    [self showCallProgressIndicator];
+    self.hangUpButton.hidden = NO;
+    [self updateControls];
 }
 
 - (void)showHangUp {
-    if (self.isShowingProgress) {
-        [self.callProgressIndicator stopAnimation:nil];
-        [self removeTrackingArea];
-        self.showingProgress = NO;
-    }
-    [self showHangUpButton];
-}
-
-- (void)showCallProgressIndicator {
-    self.hangUpButton.hidden = YES;
-    self.callProgressIndicator.hidden = NO;
-}
-
-- (void)showHangUpButton {
-    self.callProgressIndicator.hidden = YES;
+    [self.callProgressIndicator stopAnimation:nil];
     self.hangUpButton.hidden = NO;
-}
-
-- (void)addTrackingArea {
-    self.trackingArea = [[NSTrackingArea alloc] initWithRect:self.callProgressIndicator.frame
-                                                     options:(NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways)
-                                                       owner:self
-                                                    userInfo:nil];
-    [self.view addTrackingArea:self.trackingArea];
-}
-
-- (void)removeTrackingArea {
-    [self.view removeTrackingArea:self.trackingArea];
-    self.trackingArea = nil;
+    [self updateControls];
 }
 
 - (void)allowHangUp {
@@ -165,18 +162,6 @@
 
 - (void)disallowHangUp {
     self.hangUpButton.enabled = NO;
-}
-
-
-#pragma mark -
-#pragma mark NSResponder overrides
-
-- (void)mouseEntered:(NSEvent *)theEvent {
-    [self showHangUpButton];
-}
-
-- (void)mouseExited:(NSEvent *)theEvent {
-    [self showCallProgressIndicator];
 }
 
 

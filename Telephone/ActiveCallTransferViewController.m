@@ -39,6 +39,14 @@
     self.waitingForHold = NO;
 }
 
+- (void)callTimerTick:(NSTimer *)timer {
+    [super callTimerTick:timer];
+    if (!self.callController.isCallOnHold && !self.callController.call.isMicrophoneMuted &&
+        self.callController.intermediateStatusTimer == nil) {
+        self.callController.status = self.callController.elapsedTime;
+    }
+}
+
 - (IBAction)transferCall:(id)sender {
     if (self.callController.isCallOnHold) {
         [(CallTransferController *)self.callController transferCall];

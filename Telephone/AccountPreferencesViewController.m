@@ -55,6 +55,16 @@ static const NSUInteger kAccountsMax = 32;
 }
 
 - (void)awakeFromNib {
+    NSButton *dialPlanButton = [NSButton buttonWithTitle:NSLocalizedString(@"Dial plan…", @"Open dial plan editor")
+                                                       target:self action:@selector(editDialPlan:)];
+    dialPlanButton.translatesAutoresizingMaskIntoConstraints = NO;
+    NSView *advancedView = self.plusCharacterSubstitutionField.superview;
+    [advancedView addSubview:dialPlanButton];
+    [NSLayoutConstraint activateConstraints:@[
+        [dialPlanButton.leadingAnchor constraintEqualToAnchor:advancedView.leadingAnchor constant:20],
+        [dialPlanButton.topAnchor constraintEqualToAnchor:self.plusCharacterSubstitutionField.bottomAnchor constant:20]
+    ]];
+
     // Register a pasteboard type to rearrange accounts with drag and drop.
     [[self accountsTable] registerForDraggedTypes:@[kAKSIPAccountPboardType]];
     
@@ -75,6 +85,14 @@ static const NSUInteger kAccountsMax = 32;
            selector:@selector(accountSetupControllerDidAddAccount:)
                name:AKAccountSetupControllerDidAddAccountNotification
              object:nil];
+}
+
+- (void)editDialPlan:(id)sender {
+    NSInteger row = self.accountsTable.selectedRow;
+    NSArray *accounts = [[NSUserDefaults standardUserDefaults] arrayForKey:UserDefaultsKeys.accounts];
+    if (row < 0 || row >= (NSInteger)accounts.count) { NSBeep(); return; }
+    NSString *accountID = accounts[row][AKSIPAccountKeys.uuid];
+    if (accountID.length > 0) { [DialPlanEditor editAccountID:accountID]; }
 }
 
 - (void)dealloc {

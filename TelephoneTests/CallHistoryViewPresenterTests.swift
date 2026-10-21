@@ -121,7 +121,8 @@ private func makePresentationCallHistoryRecord(contact: MatchedContact, record: 
         contact: makePresentationContact(contact: contact, color: contactColor(for: record)),
         date: ShortRelativeDateTimeFormatter().string(from: record.date),
         duration: DurationFormatter().string(from: TimeInterval(record.duration))!,
-        isIncoming: record.isIncoming
+        isIncoming: record.isIncoming,
+        sourceNumber: record.uri.user
     )
 }
 

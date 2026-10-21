@@ -25,6 +25,7 @@
 #import "AKSIPCall.h"
 #import "AKSIPURIParser.h"
 #import "PJSUACallbacks.h"
+#import "SIPLog.h"
 
 #import "Telephone-Swift.h"
 
@@ -270,6 +271,7 @@ static const BOOL kAKSIPUserAgentDefaultLocksCodec = YES;
     if (self.state != AKSIPUserAgentStateStopped) {
         return;
     }
+    pj_log_set_log_func(&SIPLogWrite);
     if (pj_init() != PJ_SUCCESS) {
         NSLog(@"Error initializing PJSIP");
         return;
@@ -301,9 +303,17 @@ static const BOOL kAKSIPUserAgentDefaultLocksCodec = YES;
         }
     }
 
+    if (!SIPLogOpen(self.logFileName ?: @"", self.consoleLogLevel)) {
+        NSLog(@"Could not open SIP diagnostic log");
+        SIPLogClose();
+        [self thread_callOnMain:completion withFlag:NO];
+        return;
+    }
     status = pjsua_create();
     if (status != PJ_SUCCESS) {
         NSLog(@"Error creating PJSUA");
+        pj_log_set_log_func(&SIPLogWrite);
+        SIPLogClose();
         [self thread_callOnMain:completion withFlag:NO];
         return;
     }
@@ -363,12 +373,11 @@ static const BOOL kAKSIPUserAgentDefaultLocksCodec = YES;
 
     userAgentConfig.user_agent = [[self userAgentString] pjString];
 
-    if ([[self logFileName] length] > 0) {
-        loggingConfig.log_filename = [[[self logFileName] stringByExpandingTildeInPath] pjString];
-    }
-
+    // PJSUA writes its raw file before calling cb; only our sanitized writer may own a file.
+    loggingConfig.log_filename = pj_str("");
+    loggingConfig.cb = &SIPLogWrite;
     loggingConfig.level = (unsigned)[self logLevel];
-    loggingConfig.console_level = (unsigned)[self consoleLogLevel];
+    loggingConfig.console_level = loggingConfig.level;
     mediaConfig.no_vad = ![self detectsVoiceActivity];
     mediaConfig.enable_ice = [self usesICE];
     mediaConfig.snd_auto_close_time = 1;
@@ -584,6 +593,8 @@ static const BOOL kAKSIPUserAgentDefaultLocksCodec = YES;
     if (pjsua_destroy() != PJ_SUCCESS) {
         NSLog(@"Error stopping SIP user agent");
     }
+    pj_log_set_log_func(&SIPLogWrite);
+    SIPLogClose();
 }
 
 - (void)finishStopping {
@@ -667,7 +678,7 @@ static const BOOL kAKSIPUserAgentDefaultLocksCodec = YES;
     pjsua_acc_id accountIdentifier;
     pj_status_t status = pjsua_acc_add(&accountConfig, PJ_FALSE, &accountIdentifier);
     if (status != PJ_SUCCESS) {
-        NSLog(@"Error adding account %@ with status %d", anAccount, status);
+        NSLog(@"Error adding SIP account with status %d", status);
         return NO;
     }
     

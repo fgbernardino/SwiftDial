@@ -1,0 +1,142 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"Accounts" = "Contas";
+"Address Not Found" = "Endereço não encontrado";
+"All active calls will be disconnected." = "Todas as chamadas em andamento serão encerradas.";
+"Answer" = "Atender";
+"Are you sure you want to delete all records?" = "Deseja apagar todos os registros?";
+"Are you sure you want to delete the record “%@”?" = "Deseja apagar o registro “%@”?";
+"Are you sure you want to quit SwiftDial?" = "Deseja sair do SwiftDial?";
+"Available" = "Disponível";
+"Call" = "Chamada";
+"Call Failed" = "Falha na chamada";
+"Cancel" = "Cancelar";
+"Connecting..." = "Conectando...";
+"Could not register with %@." = "Não foi possível registrar a conta em %@.";
+"Could not start SIP user agent." = "Não foi possível iniciar o cliente SIP.";
+"Decline" = "Recusar";
+"Delete" = "Apagar";
+"Delete “%@”?" = "Apagar “%@”?";
+"Don't Save" = "Não salvar";
+"End Call" = "Encerrar chamada";
+"Error %ld" = "Erro %ld";
+"Failed to communicate with STUN server." = "Falha na comunicação com o servidor STUN.";
+"General" = "Geral";
+"Hold" = "Colocar em espera";
+"Mute" = "Silenciar";
+"Network" = "Rede";
+"New network settings will be applied immediately, all accounts will be reconnected." = "Os novos ajustes de rede serão aplicados imediatamente e todas as contas serão reconectadas.";
+"Offline" = "Desconectado";
+"Please check network connection and Registry Server settings." = "Verifique a conexão de rede e os ajustes do servidor de registro.";
+"Please check your network connection and STUN server settings." = "Verifique a conexão de rede e os ajustes do servidor STUN.";
+"Quit" = "Sair";
+"Resume" = "Retomar";
+"Save" = "Salvar";
+"Save changes to the network settings?" = "Salvar as alterações nos ajustes de rede?";
+"Sound" = "Áudio";
+"SwiftDial Preferences" = "Ajustes do SwiftDial";
+"SwiftDial was unable to login to %@. Change user name or password and try again." = "O SwiftDial não conseguiu autenticar em %@. Altere o usuário ou a senha e tente novamente.";
+"The error was: “%ld %@”." = "O erro foi: “%1$ld %2$@”.";
+"This action cannot be undone." = "Esta ação não pode ser desfeita.";
+"This will delete your currently set up account “%@”." = "A conta “%@” configurada será apagada.";
+"UDP packets are probably blocked. It is impossible to make or receive calls without that. Make sure that your local firewall and the firewall at your router allow UDP protocol." = "Os pacotes UDP provavelmente estão bloqueados. Não é possível fazer ou receber chamadas sem eles. Verifique se o firewall do computador e o do roteador permitem o protocolo UDP.";
+"Unavailable" = "Indisponível";
+"Unknown device" = "Dispositivo desconhecido";
+"Unknown error" = "Erro desconhecido";
+"Unmute" = "Ativar microfone";
+"Use System Setting" = "Usar ajuste do sistema";
+"busy" = "ocupado";
+"call declined" = "chamada recusada";
+"call ended" = "chamada encerrada";
+"call transferred" = "chamada transferida";
+"calling" = "ligando";
+"calling %@..." = "ligando para %@...";
+"calling from %@" = "ligando de %@";
+"calling..." = "ligando...";
+"mic muted" = "microfone silenciado";
+"mic unmuted" = "microfone ativado";
+"off hold" = "chamada retomada";
+"on hold" = "em espera";
+"on remote hold" = "em espera pelo outro participante";
+"ringing" = "chamando";
+
+"Dial Pad" = "Teclado numérico";
+"Phone number" = "Número de telefone";
+"Delete digit" = "Apagar dígito";
+"Dial" = "Ligar";
+
+"Dial plan" = "Plano de discagem";
+
+"Dial plan…" = "Plano de discagem…";
+
+"Test number" = "Número para teste";
+
+"Test without calling" = "Testar sem ligar";
+
+"Invalid dial plan." = "Plano de discagem inválido.";
+
+"Number blocked by dial plan." = "Número bloqueado pelo plano de discagem.";
+
+"Call blocked" = "Chamada bloqueada";
+
+"MicroSIP syntax. First matching rule wins; other numbers are blocked. Leave empty to disable. Applies before replacing +. History numbers use the plan without repeating recognized replacements. Explicit SIP addresses and call-window redial are used as stored." = "Sintaxe do MicroSIP. A primeira regra correspondente é usada; outros números são bloqueados. Deixe vazio para desativar. Aplicado antes da substituição de +. Números do histórico usam o plano sem repetir substituições reconhecidas. Endereços SIP explícitos e a rediscagem na janela da chamada são usados como armazenados.";
+
+"Local Contacts" = "Contatos locais";
+
+"Local Contacts…" = "Contatos locais…";
+
+"Name" = "Nome";
+
+"New" = "Novo";
+
+"Delete this contact?" = "Excluir este contato?";
+
+"Saved only in SwiftDial. Enter the original number, without the dial-plan prefix." = "Salvo apenas no SwiftDial. Digite o número original, sem o prefixo do plano de discagem.";
+
+"Enter a name and a valid phone number." = "Digite um nome e um número de telefone válido.";
+
+"This number is already saved." = "Este número já está salvo.";
+
+"Save Contact…" = "Salvar contato…";
+
+"Replace the current contact form?" = "Substituir o formulário de contato atual?";
+
+"Unsaved changes in the form will be discarded." = "As alterações não salvas no formulário serão descartadas.";
+
+"Continue" = "Continuar";
+
+"Check the original number before saving; recovery uses the current dial plan." = "Confira o número original antes de salvar; a recuperação usa o plano de discagem atual.";
+
+"No account is available to place this call." = "Nenhuma conta está disponível para realizar esta chamada.";
+
+/* Edit a history number without calling. */
+"Correct Number" = "Corrigir Número";
+
+"Connected" = "Em chamada";
+"Unknown Contact" = "Contato desconhecido";
+"Transfer…" = "Transferir…";
+"Call Again" = "Ligar novamente";
+
+"User Directory" = "Diretório de Usuários";
+
+"User Directory…" = "Diretório de Usuários…";
+
+"Directory URL" = "URL do diretório";
+
+"Save URL" = "Salvar URL";
+
+"Refresh" = "Atualizar";
+
+"Read-only shared contacts. Local contacts stay separate. Leave the URL empty to disable." = "Contatos compartilhados somente para leitura. Os contatos locais ficam separados. Deixe a URL vazia para desativar.";
+
+"Directory is disabled." = "O diretório está desativado.";
+
+"Showing saved directory." = "Exibindo o diretório salvo.";
+
+"Enter a valid HTTPS directory URL, or leave it empty to disable." = "Informe uma URL HTTPS válida para o diretório ou deixe em branco para desativar.";
+
+"Updating directory…" = "Atualizando diretório…";
+
+"Directory updated: %ld contacts." = "Diretório atualizado: %ld contatos.";
+
+"Could not update directory. Saved contacts are retained. Retrying in 5 minutes." = "Não foi possível atualizar o diretório. Os contatos salvos foram mantidos. Nova tentativa em 5 minutos.";

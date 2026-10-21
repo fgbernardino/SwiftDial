@@ -21,6 +21,11 @@
 #import "CallController.h"
 
 
+@interface EndedCallViewController ()
+@property(nonatomic, weak) IBOutlet NSTextField *numberField;
+@property(nonatomic, weak) IBOutlet NSTextField *durationField;
+@end
+
 @implementation EndedCallViewController
 
 - (instancetype)initWithNibName:(NSString *)nibName callController:(CallController *)callController {
@@ -38,9 +43,18 @@
     return nil;
 }
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    if (self.numberField != nil) {
+        self.redialButton.title = NSLocalizedString(@"Call Again", @"Redial ended call.");
+    }
+}
+
 - (void)removeObservations {
     [[self displayedNameField] unbind:NSValueBinding];
     [[self statusField] unbind:NSValueBinding];
+    [self.numberField unbind:NSValueBinding];
+    [self.durationField unbind:NSValueBinding];
 }
 
 - (IBAction)redial:(id)sender {

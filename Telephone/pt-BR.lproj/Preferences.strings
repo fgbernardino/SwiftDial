@@ -1,0 +1,11 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"141.label" = "Geral";
+"141.paletteLabel" = "Geral";
+"142.label" = "Contas";
+"142.paletteLabel" = "Contas";
+"250.label" = "Áudio";
+"250.paletteLabel" = "Áudio";
+"259.label" = "Rede";
+"259.paletteLabel" = "Rede";
+"77.title" = "Ajustes";

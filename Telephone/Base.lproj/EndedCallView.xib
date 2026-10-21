@@ -1,78 +1,100 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="25087" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="25087"/>
-        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="25087" />
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0" />
     </dependencies>
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="EndedCallViewController">
             <connections>
-                <outlet property="displayedNameField" destination="80" id="135"/>
-                <outlet property="redialButton" destination="128" id="130"/>
-                <outlet property="statusField" destination="81" id="137"/>
-                <outlet property="view" destination="51" id="132"/>
+                <outlet property="displayedNameField" destination="80" id="135" />
+                <outlet property="redialButton" destination="128" id="130" />
+                <outlet property="statusField" destination="81" id="137" />
+                <outlet property="view" destination="51" id="132" />
+                <outlet property="numberField" destination="number" id="number-outlet" />
+                <outlet property="durationField" destination="duration" id="duration-outlet" />
             </connections>
         </customObject>
-        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
-        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder" />
+        <customObject id="-3" userLabel="Application" customClass="NSObject" />
         <customView id="51" userLabel="Ended Call View">
-            <rect key="frame" x="0.0" y="0.0" width="300" height="84"/>
-            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+            <rect key="frame" x="0.0" y="0.0" width="480" height="190" />
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES" />
             <subviews>
                 <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" setsMaxLayoutWidthAtFirstLayout="YES" translatesAutoresizingMaskIntoConstraints="NO" id="81">
-                    <rect key="frame" x="18" y="9" width="264" height="32"/>
-                    <constraints>
-                        <constraint firstAttribute="height" constant="32" id="gpe-s5-Y2X"/>
-                    </constraints>
-                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Status" id="82">
-                        <font key="font" metaFont="system"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    <rect key="frame" x="18" y="9" width="264" height="32" />
+                    <textFieldCell key="cell" sendsActionOnEndEditing="YES" title="Status" id="82" lineBreakMode="truncatingTail">
+                        <font key="font" metaFont="system" />
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog" />
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog" />
                     </textFieldCell>
                     <connections>
-                        <binding destination="-2" name="value" keyPath="callController.status" id="134"/>
+                        <binding destination="-2" name="value" keyPath="callController.status" id="134" />
                     </connections>
                 </textField>
-                <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="80">
-                    <rect key="frame" x="18" y="45" width="105" height="19"/>
-                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Display Name" id="83">
-                        <font key="font" metaFont="systemBold" size="15"/>
-                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
-                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                <textField focusRingType="none" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="80" horizontalCompressionResistancePriority="250">
+                    <rect key="frame" x="18" y="45" width="105" height="19" />
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Display Name" id="83">
+                        <font key="font" metaFont="systemBold" size="15" />
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog" />
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog" />
                     </textFieldCell>
                     <connections>
-                        <binding destination="-2" name="value" keyPath="callController.displayedName" id="133"/>
+                        <binding destination="-2" name="value" keyPath="callController.contactName" id="133" />
                     </connections>
                 </textField>
-                <button toolTip="Call Back" translatesAutoresizingMaskIntoConstraints="NO" id="128">
-                    <rect key="frame" x="265" y="44" width="15" height="21"/>
-                    <buttonCell key="cell" type="square" bezelStyle="shadowlessSquare" image="NSRefreshFreestandingTemplate" imagePosition="only" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="129">
-                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
-                        <font key="font" metaFont="system"/>
+                <button translatesAutoresizingMaskIntoConstraints="NO" id="128">
+                    <rect key="frame" x="265" y="44" width="15" height="21" />
+                    <buttonCell key="cell" type="push" bezelStyle="rounded" borderStyle="border" imagePosition="noImage" alignment="center" imageScaling="proportionallyUpOrDown" inset="2" id="129" title="Call Again">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" />
+                        <font key="font" metaFont="system" />
                     </buttonCell>
-                    <constraints>
-                        <constraint firstAttribute="width" constant="15" id="EY1-Q3-fIf"/>
-                        <constraint firstAttribute="height" constant="15" id="lna-jp-Qfd"/>
-                    </constraints>
                     <connections>
-                        <action selector="redial:" target="-2" id="131"/>
+                        <action selector="redial:" target="-2" id="131" />
                     </connections>
                 </button>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="number">
+                    <rect key="frame" x="20" y="100" width="380" height="18" />
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" selectable="YES" title="" id="number-cell">
+                        <font key="font" metaFont="system" size="13" />
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog" />
+                    </textFieldCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="callController.formattedNumber" id="number-binding" />
+                    </connections>
+                </textField>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="duration">
+                    <rect key="frame" x="20" y="100" width="380" height="18" />
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" selectable="YES" title="" id="duration-cell">
+                        <font key="font" metaFont="system" size="13" />
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog" />
+                    </textFieldCell>
+                    <connections>
+                        <binding destination="-2" name="value" keyPath="callController.elapsedTime" id="duration-binding" />
+                    </connections>
+                </textField>
             </subviews>
             <constraints>
-                <constraint firstItem="81" firstAttribute="top" secondItem="80" secondAttribute="bottom" constant="4" id="5Cz-uR-ITO"/>
-                <constraint firstItem="80" firstAttribute="leading" secondItem="51" secondAttribute="leading" constant="20" symbolic="YES" id="W3k-FN-mxX"/>
-                <constraint firstAttribute="trailing" secondItem="81" secondAttribute="trailing" constant="20" symbolic="YES" id="bAG-7N-nXN"/>
-                <constraint firstItem="81" firstAttribute="leading" secondItem="80" secondAttribute="leading" id="bPC-8q-Nam"/>
-                <constraint firstItem="80" firstAttribute="centerY" secondItem="128" secondAttribute="centerY" id="dUb-Yz-ytV"/>
-                <constraint firstItem="128" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="80" secondAttribute="trailing" constant="8" id="hN9-In-kqi"/>
-                <constraint firstAttribute="trailing" secondItem="128" secondAttribute="trailing" constant="20" symbolic="YES" id="sqx-q0-Tin"/>
-                <constraint firstItem="80" firstAttribute="top" secondItem="51" secondAttribute="top" constant="20" symbolic="YES" id="zDK-ge-fQX"/>
+                <constraint firstItem="80" firstAttribute="leading" constant="20" id="layout-0" secondItem="51" secondAttribute="leading" />
+                <constraint firstItem="80" firstAttribute="top" constant="20" id="layout-1" secondItem="51" secondAttribute="top" />
+                <constraint firstItem="80" firstAttribute="trailing" constant="-40" id="layout-2" secondItem="51" secondAttribute="trailing" />
+                <constraint firstItem="number" firstAttribute="leading" constant="0" id="layout-3" secondItem="80" secondAttribute="leading" />
+                <constraint firstItem="number" firstAttribute="top" constant="5" id="layout-4" secondItem="80" secondAttribute="bottom" />
+                <constraint firstItem="number" firstAttribute="trailing" constant="-20" id="layout-5" secondItem="51" secondAttribute="trailing" />
+                <constraint firstItem="81" firstAttribute="leading" constant="0" id="layout-6" secondItem="80" secondAttribute="leading" />
+                <constraint firstItem="81" firstAttribute="top" constant="12" id="layout-7" secondItem="number" secondAttribute="bottom" />
+                <constraint firstItem="81" firstAttribute="trailing" constant="-95" id="layout-8" secondItem="51" secondAttribute="trailing" />
+                <constraint firstItem="duration" firstAttribute="trailing" constant="-20" id="layout-9" secondItem="51" secondAttribute="trailing" />
+                <constraint firstItem="duration" firstAttribute="centerY" constant="0" id="layout-10" secondItem="81" secondAttribute="centerY" />
+                <constraint firstItem="duration" firstAttribute="width" constant="70" id="layout-11" />
+                <constraint firstItem="128" firstAttribute="trailing" constant="-20" id="layout-12" secondItem="51" secondAttribute="trailing" />
+                <constraint firstItem="128" firstAttribute="bottom" constant="-20" id="layout-13" secondItem="51" secondAttribute="bottom" />
+                <constraint firstItem="128" firstAttribute="width" constant="140" id="layout-14" />
             </constraints>
-            <point key="canvasLocation" x="6" y="136"/>
+            <point key="canvasLocation" x="6" y="136" />
         </customView>
     </objects>
     <resources>
-        <image name="NSRefreshFreestandingTemplate" width="20" height="20"/>
+        <image name="NSRefreshFreestandingTemplate" width="20" height="20" />
     </resources>
 </document>

@@ -37,9 +37,11 @@
 
 #import "Telephone-Swift.h"
 
+@import UserNotifications;
+
 NS_ASSUME_NONNULL_BEGIN
 
-@interface AppController () <AKSIPUserAgentDelegate, NSUserNotificationCenterDelegate, NameServersChangeEventTarget, PreferencesControllerDelegate, ObjCStoreEventTarget>
+@interface AppController () <AKSIPUserAgentDelegate, UNUserNotificationCenterDelegate, NameServersChangeEventTarget, PreferencesControllerDelegate>
 
 @property(nonatomic, readonly) AKSIPUserAgent *userAgent;
 @property(nonatomic, readonly) AccountControllers *accountControllers;
@@ -55,12 +57,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, readonly) CompositionRoot *compositionRoot;
 @property(nonatomic, readonly) PreferencesController *preferencesController;
-@property(nonatomic, readonly) StoreWindowPresenter *storeWindowPresenter;
 @property(nonatomic, readonly) id<RingtonePlaybackUseCase> ringtonePlayback;
 @property(nonatomic, readonly) id<UseCase> userAgentStart;
 @property(nonatomic, readonly) WorkspaceSleepStatus *sleepStatus;
 @property(nonatomic, readonly) AsyncCallHistoryViewEventTargetFactory *callHistoryViewEventTargetFactory;
-@property(nonatomic, readonly) AsyncCallHistoryPurchaseCheckUseCaseFactory *purchaseCheckUseCaseFactory;
 @property(nonatomic, getter=isFinishedLaunching) BOOL finishedLaunching;
 @property(nonatomic, copy) NSString *destinationToCall;
 @property(nonatomic, getter=isUserSessionActive) BOOL userSessionActive;
@@ -89,18 +89,15 @@ NS_ASSUME_NONNULL_END
     }
 
     _compositionRoot = [[CompositionRoot alloc] initWithPreferencesControllerDelegate:self
-                                                         nameServersChangeEventTarget:self
-                                                                     storeEventTarget:self];
+                                                         nameServersChangeEventTarget:self];
     
     _userAgent = _compositionRoot.userAgent;
     [[self userAgent] setDelegate:self];
     _preferencesController = _compositionRoot.preferencesController;
-    _storeWindowPresenter = _compositionRoot.storeWindowPresenter;
     _ringtonePlayback = _compositionRoot.ringtonePlayback;
     _userAgentStart = _compositionRoot.userAgentStart;
     _sleepStatus = _compositionRoot.workstationSleepStatus;
     _callHistoryViewEventTargetFactory = _compositionRoot.callHistoryViewEventTargetFactory;
-    _purchaseCheckUseCaseFactory = _compositionRoot.callHistoryPurchaseCheckUseCaseFactory;
     _destinationToCall = @"";
     _userSessionActive = YES;
     _accountControllers = _compositionRoot.accountControllers;
@@ -190,10 +187,6 @@ NS_ASSUME_NONNULL_END
     }
 }
 
-- (IBAction)showStoreWindow:(id)sender {
-    [self.storeWindowPresenter present];
-}
-
 - (IBAction)showPreferencePanel:(id)sender {
     [self.preferencesController showWindowCentered];
 }
@@ -228,12 +221,6 @@ NS_ASSUME_NONNULL_END
     [[NSApp dockTile] setBadgeLabel:badgeString];
 }
 
-- (void)remindAboutPurchasingAfterDelay {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self.compositionRoot.purchaseReminder execute];
-    });
-}
-
 - (void)showAccountPreferencesIfNeeded {
     if (self.accountControllers.enabled.count == 0)  {
         [self.preferencesController showWindowCentered];
@@ -254,9 +241,7 @@ NS_ASSUME_NONNULL_END
                                                                         userAgent:self.userAgent
                                                                  ringtonePlayback:self.ringtonePlayback
                                                                       sleepStatus:self.sleepStatus
-                                                callHistoryViewEventTargetFactory:self.callHistoryViewEventTargetFactory
-                                                      purchaseCheckUseCaseFactory:self.purchaseCheckUseCaseFactory
-                                                             storeWindowPresenter:self.storeWindowPresenter];
+                                                callHistoryViewEventTargetFactory:self.callHistoryViewEventTargetFactory];
 
     [controller setEnabled:[dict[UserDefaultsKeys.accountEnabled] boolValue]];
     [controller setSubstitutesPlusCharacter:[dict[UserDefaultsKeys.substitutePlusCharacter] boolValue]];
@@ -493,13 +478,53 @@ NS_ASSUME_NONNULL_END
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    NSMenuItem *contactsMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Local Contacts", @"Internal address book") action:nil keyEquivalent:@""];
+    NSMenu *contactsMenu = [[NSMenu alloc] initWithTitle:contactsMenuItem.title];
+    NSMenuItem *openContacts = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Local Contacts…", @"Open internal address book") action:@selector(open:) keyEquivalent:@"k"];
+    openContacts.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift;
+    openContacts.target = LocalContactsWindowController.shared;
+    __weak AppController *weakSelf = self;
+    LocalContactsWindowController.shared.placeCall = ^BOOL(NSString *number) {
+        AppController *controller = weakSelf;
+        if (![controller canMakeCall]) { return NO; }
+        [controller makeCallTo:number];
+        return YES;
+    };
+    [contactsMenu addItem:openContacts];
+    NSMenuItem *openDirectory = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"User Directory…", @"Open shared directory") action:@selector(open:) keyEquivalent:@"k"];
+    openDirectory.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagOption;
+    openDirectory.target = UserDirectoryWindowController.shared;
+    UserDirectoryWindowController.shared.placeCall = LocalContactsWindowController.shared.placeCall;
+    [contactsMenu addItem:openDirectory];
+    [UserDirectory.shared start];
+    contactsMenuItem.submenu = contactsMenu;
+    [NSApp.mainMenu insertItem:contactsMenuItem atIndex:MIN(3, NSApp.mainMenu.numberOfItems)];
+
     NSWindow.allowsAutomaticWindowTabbing = NO;
     [self.compositionRoot.defaultAppSettings registerDefaults];
     [self.compositionRoot.settingsMigration execute];
     self.helpMenuActionRedirect.target = self.compositionRoot.helpMenuActionTarget;
     [self configureUserAgent];
     self.accountsMenuItems = [[AccountsMenuItems alloc] initWithMenu:self.windowMenu controllers:self.accountControllers];
-    NSUserNotificationCenter.defaultUserNotificationCenter.delegate = self;
+    UNUserNotificationCenter *notificationCenter = [UNUserNotificationCenter currentNotificationCenter];
+    notificationCenter.delegate = self;
+    UNNotificationAction *answer = [UNNotificationAction actionWithIdentifier:@"answer"
+                                                                      title:NSLocalizedString(@"Answer", @"Call answer button.")
+                                                                    options:UNNotificationActionOptionForeground];
+    UNNotificationAction *decline = [UNNotificationAction actionWithIdentifier:@"decline"
+                                                                       title:NSLocalizedString(@"Decline", @"Call decline button.")
+                                                                     options:UNNotificationActionOptionDestructive];
+    UNNotificationCategory *incomingCall = [UNNotificationCategory categoryWithIdentifier:@"incoming-call"
+                                                                                 actions:@[answer, decline]
+                                                                       intentIdentifiers:@[]
+                                                                                 options:UNNotificationCategoryOptionNone];
+    [notificationCenter setNotificationCategories:[NSSet setWithObject:incomingCall]];
+    [notificationCenter requestAuthorizationWithOptions:UNAuthorizationOptionAlert
+                                     completionHandler:^(BOOL granted, NSError *error) {
+        if (error) {
+            NSLog(@"Could not request notification authorization (code %ld).", (long)error.code);
+        }
+    }];
     NSApp.servicesProvider = self;
     NSArray *accounts = [NSUserDefaults.standardUserDefaults arrayForKey:UserDefaultsKeys.accounts];
     if (accounts.count == 0) {
@@ -532,7 +557,6 @@ NS_ASSUME_NONNULL_END
     [self.accountControllers updateCallsShouldDisplayAccountInfo];
     [self.accountsMenuItems update];
     [self setShouldPresentUserAgentLaunchError:YES];
-    [self remindAboutPurchasingAfterDelay];
     [self.accountControllers registerAllAccountsWhereManualRegistrationRequired];
     [self makeCallAfterLaunchIfNeeded];
     [self.compositionRoot.orphanLogFileRemoval performSelector:@selector(execute) withObject:nil afterDelay:0];
@@ -573,7 +597,7 @@ NS_ASSUME_NONNULL_END
 }
 
 - (void)applicationDidBecomeActive:(NSNotification *)aNotification {
-    [NSUserNotificationCenter.defaultUserNotificationCenter removeAllDeliveredNotifications];
+    [[UNUserNotificationCenter currentNotificationCenter] removeAllDeliveredNotifications];
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
@@ -581,7 +605,7 @@ NS_ASSUME_NONNULL_END
         NSAlert *alert = [[NSAlert alloc] init];
         [alert addButtonWithTitle:NSLocalizedString(@"Quit", @"Quit button.")];
         [alert addButtonWithTitle:NSLocalizedString(@"Cancel", @"Cancel button.")].keyEquivalent = @"\033";
-        [alert setMessageText:NSLocalizedString(@"Are you sure you want to quit Telephone?",
+        [alert setMessageText:NSLocalizedString(@"Are you sure you want to quit SwiftDial?",
                                                 @"Telephone quit confirmation.")];
         [alert setInformativeText:NSLocalizedString(@"All active calls will be disconnected.",
                                                     @"Telephone quit confirmation informative text.")];
@@ -651,24 +675,24 @@ NS_ASSUME_NONNULL_END
     }
 }
 
-#pragma mark - NSUserNotificationCenterDelegate
+#pragma mark - UNUserNotificationCenterDelegate
 
-- (void)userNotificationCenter:(NSUserNotificationCenter *)center didActivateNotification:(NSUserNotification *)notification {
-    CallController *controller = [self.accountControllers callControllerByIdentifier:notification.identifier];
-    switch (notification.activationType) {
-        case NSUserNotificationActivationTypeContentsClicked:
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+ didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *identifier = response.notification.request.identifier;
+        CallController *controller = [self.accountControllers callControllerByIdentifier:identifier];
+        if ([response.actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
             [controller showWindow:self];
-            [center removeDeliveredNotification:notification];
-            break;
-        case NSUserNotificationActivationTypeActionButtonClicked:
+        } else if ([response.actionIdentifier isEqualToString:@"answer"] && controller.isCallActive && controller.isCallUnhandled) {
             [controller acceptCall];
-            break;
-        case NSUserNotificationActivationTypeAdditionalActionClicked:
+        } else if ([response.actionIdentifier isEqualToString:@"decline"] && controller.isCallActive && controller.isCallUnhandled) {
             [controller hangUpCall];
-            break;
-        default:
-            break;
-    }
+        }
+        [center removeDeliveredNotificationsWithIdentifiers:@[identifier]];
+        completionHandler();
+    });
 }
 
 
@@ -758,10 +782,5 @@ NS_ASSUME_NONNULL_END
     }
 }
 
-#pragma mark - ObjCStoreEventTarget
-
-- (void)didPurchase {
-    [self restartUserAgentAfterDelayOrMarkForRestart];
-}
 
 @end

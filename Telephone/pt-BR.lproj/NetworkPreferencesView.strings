@@ -1,0 +1,12 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"195.title" = "Servidor STUN:";
+"197.placeholderString" = "3478";
+"199.title" = "Porta:";
+"318.title" = "Proxy de saída:";
+"321.title" = "Porta:";
+"467.title" = "Usar ICE";
+"485.title" = "Porta SIP local:";
+"492.title" = "Deixe em branco para usar uma porta disponível.";
+"550.title" = "Usar DNS SRV";
+"VJj-dK-qaq.title" = "Use o proxy da conta.";

@@ -1,0 +1,24 @@
+# Current SIP capabilities
+
+Source assessment at `72bbb66dda0ad7a3568cf78ce349c7a61a4bf936`, 2026-10-16. “Implemented” means an application path exists, not that interoperability was tested with a provider. See [BUILD.md](BUILD.md) for validation limits.
+
+| Capability | Current implementation | Remaining work / qualification |
+| --- | --- | --- |
+| Registration and authentication | `AKSIPUserAgent.addAccount:withPassword:` configures registrar, digest realm/user/password; `AKSIPAccount` controls registration. Keychain-backed credentials and authentication failure UI exist. | Validate real provider challenge, expiration, bad credentials and recovery. |
+| UDP, TCP, TLS | All three transports, IPv4 and IPv6, are created in `AKSIPUserAgent`; account transport/IP preference selects one. | TLS needs compiled TLS support and bundled `PublicCAs.pem`. Server verification is enabled. TLS forces mandatory SRTP; UDP/TCP disable SRTP in current account configuration. This coupling may reject providers that offer TLS signaling but plain RTP. |
+| Incoming/outgoing calls | `AKSIPAccount`, `PJSUAOnIncomingCall`, `PJSUAOnCallState`, `CallController`, incoming/active/ended views. | No live SIP/RTP validation in this assessment. Local call-creation errors lose detailed native status. |
+| Direct/blind transfer | No `pjsua_call_xfer` call found in application sources. | PJSIP 2.10 already provides the API; add a thin adapter and explicit UI flow, status and failure handling. No new SIP stack is required. |
+| Attended transfer | `CallTransferController.transferCall` calls `AKSIPCall.attendedTransferToCall`, backed by `pjsua_call_xfer_replaces`. Transfer status/replaced-call callbacks exist. | Verify cancel, consultation failure, remote disconnect and PBX REFER/Replaces behavior. A transfer UI does not prove blind transfer exists. |
+| Hold/resume | `AKSIPCall.hold/unhold`, PJSUA hold/re-INVITE and media-state notifications. | Validate remote/local hold transitions and audio restoration. |
+| DTMF | `sendDTMFDigits` first attempts RTP telephone events (RFC2833 naming in the code), then SIP INFO per digit on failure. | This is immediate API-error fallback, not detection of a remote PBX silently ignoring tones. No user-selectable signaling mode or in-band tone path found. |
+| Extension dialing / PBX pickup | Numeric dialing supplies the account domain; number formatter retains `*` and `#`, allowing ordinary PBX feature-code dialing. | Pickup is provider/PBX-defined. No dedicated pickup action, feature-code setting or PBX discovery exists. Test configured codes with a test PBX. |
+| Multiple SIP accounts | Account collection, preference UI, per-account registration/history and inbound account callbacks exist. README sets PJSUA maximum accounts to 32. | Distinguish account maximum from concurrent-call limits: all users have the existing 30-call capacity. |
+| SIP response/error display | Call last status/text, registration status/error and transfer status reach controllers; localization table supplies explanations for known SIP codes. | No unified timeline/export or durable failed-call status. Local PJ errors and SIP response codes need distinct treatment. |
+| SIP message logs | PJSUA file logging and hidden UserDefaults log-level settings already exist; Help reveals log. | No safe redaction/export or dedicated logging preferences UI found. Do not increase verbosity with real credentials until raw sinks are secured. |
+| Dial transformations | Formatting cleanup, URL header stripping/unescaping, optional per-account leading-plus substitution. | No ordered configurable regex rules, validation, testing UI or preview. Dial plans are application logic, not a missing PJSIP protocol feature. |
+| NAT/media settings | STUN, ICE, DNS SRV, QoS, contact/Via/SDP rewrite, VAD and codec options exist. | Availability in stored settings differs from preference exposure. Provider compatibility and audio quality need runtime tests. |
+| History | Persistent per-account incoming/outgoing/missed records, date and duration. | No retention or purchase-based display cap. Search, failed outcome and stored SIP failure fields are absent. |
+
+PJSIP 2.10 supplies blind and attended transfer, log callbacks/reconfiguration and IP-change handling. The fork uses attended transfer but does not expose blind transfer or call its IP-change API. Application-specific diagnostics redaction, rule ordering/testing, searchable history and pickup preferences require new application work. These distinctions are grounded in the [pinned PJSUA API](https://raw.githubusercontent.com/pjsip/pjproject/2.10/pjsip/include/pjsua-lib/pjsua.h), rather than capabilities of a newer release.
+
+There is no proposed chat, video, presence or cloud feature expansion. The README explicitly disables video, libyuv and libwebrtc in the native build.

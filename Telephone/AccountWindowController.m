@@ -68,6 +68,10 @@
 - (void)windowDidLoad {
     self.window.title = self.accountDescription;
     self.window.frameAutosaveName = self.SIPAddress;
+    self.window.contentMinSize = NSMakeSize(360, 360);
+    NSSize size = self.window.contentView.frame.size;
+    [self.window setContentSize:NSMakeSize(MAX(size.width, 380), MAX(size.height, 580))];
+    [self.window setFrame:[self.window constrainFrameRect:self.window.frame toScreen:self.window.screen] display:NO];
     self.window.excludedFromWindowsMenu = YES;
 
     [self.window.contentView addSubview:self.accountViewController.view];

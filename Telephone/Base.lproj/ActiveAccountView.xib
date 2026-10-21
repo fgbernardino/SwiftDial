@@ -35,7 +35,6 @@
             <constraints>
                 <constraint firstItem="5" firstAttribute="centerY" secondItem="1" secondAttribute="centerY" id="EwD-re-VoC"/>
                 <constraint firstItem="5" firstAttribute="leading" secondItem="1" secondAttribute="leading" constant="20" symbolic="YES" id="WE4-eE-O8G"/>
-                <constraint firstAttribute="trailing" secondItem="5" secondAttribute="trailing" constant="20" symbolic="YES" id="gcr-z6-FxP"/>
             </constraints>
             <point key="canvasLocation" x="129" y="154"/>
         </customView>

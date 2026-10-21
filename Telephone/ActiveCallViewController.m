@@ -29,6 +29,7 @@
 @interface ActiveCallViewController () <NSMenuItemValidation>
 
 @property(nonatomic, weak) IBOutlet NSTextField *displayedNameField;
+@property(nonatomic, copy) NSString *nameBeforeDTMF;
 @property(nonatomic, weak) IBOutlet NSTextField *statusField;
 @property(nonatomic, weak) IBOutlet NSTextField *numberField;
 @property(nonatomic, weak) IBOutlet NSTextField *durationField;
@@ -67,6 +68,17 @@
 
 - (IBAction)hangUpCall:(id)sender {
     [[self callController] hangUpCall];
+}
+
+- (void)resetDTMF {
+    if (self.enteredDTMF.length == 0) { return; }
+    [self.enteredDTMF setString:@""];
+    self.callController.displayedName = self.nameBeforeDTMF;
+    self.nameBeforeDTMF = nil;
+    [self.displayedNameField unbind:NSValueBinding];
+    [self.displayedNameField bind:NSValueBinding toObject:self.callController
+                     withKeyPath:self.numberField != nil ? @"contactName" : @"displayedName" options:nil];
+    self.displayedNameField.lineBreakMode = NSLineBreakByTruncatingTail;
 }
 
 - (IBAction)toggleCallHold:(id)sender {
@@ -182,6 +194,7 @@
     
     if (isDTMFValid) {
         if ([[self enteredDTMF] length] == 0) {
+            self.nameBeforeDTMF = self.callController.displayedName;
             [self.displayedNameField unbind:NSValueBinding];
             [self.displayedNameField bind:NSValueBinding toObject:self.callController withKeyPath:@"displayedName" options:nil];
             [[self enteredDTMF] appendString:aString];

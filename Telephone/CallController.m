@@ -382,6 +382,7 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
     self.elapsedTime = @"00:00";
     self.window.styleMask &= ~NSWindowStyleMaskClosable;
     [self showActiveCallView];
+    [self.activeCallViewController resetDTMF];
     [self.activeCallViewController showProgress];
     [self.activeCallViewController disallowHangUp];
 }

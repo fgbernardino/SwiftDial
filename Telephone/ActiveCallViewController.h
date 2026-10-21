@@ -40,6 +40,7 @@
 - (instancetype)initWithNibName:(NSString *)nibName callController:(CallController *)callController;
 
 - (void)removeObservations;
+- (void)resetDTMF;
 
 // Hangs up call.
 - (IBAction)hangUpCall:(id)sender;

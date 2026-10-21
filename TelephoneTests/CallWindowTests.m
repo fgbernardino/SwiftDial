@@ -38,6 +38,8 @@
     view.view = [NSView new];
     NSTextField *name = [NSTextField new];
     [view setValue:name forKey:@"displayedNameField"];
+    NSTextField *number = [NSTextField new];
+    [view setValue:number forKey:@"numberField"];
     [name bind:NSValueBinding toObject:controller withKeyPath:@"contactName" options:nil];
     XCTAssertEqualObjects(name.stringValue, @"Maria");
     [view activeCallView:nil didReceiveText:@"!"];
@@ -49,6 +51,38 @@
     XCTAssertEqualObjects(name.stringValue, @"12*#");
     XCTAssertEqualObjects(controller.call.sentDigits, @"12*#");
     XCTAssertEqualObjects(controller.contactName, @"Maria");
+    [view resetDTMF];
+    XCTAssertEqualObjects(view.enteredDTMF, @"");
+    XCTAssertEqualObjects(name.stringValue, @"Maria");
+    XCTAssertEqualObjects(controller.displayedName, @"Maria");
+    XCTAssertEqual(name.lineBreakMode, NSLineBreakByTruncatingTail);
+    controller.contactName = @"Maria Silva";
+    XCTAssertEqualObjects(name.stringValue, @"Maria Silva");
+    controller.call = [CallWindowCallStub new];
+    [view activeCallView:nil didReceiveText:@"3"];
+    XCTAssertEqualObjects(name.stringValue, @"3");
+    XCTAssertEqualObjects(controller.call.sentDigits, @"3");
+    [name unbind:NSValueBinding];
+}
+
+- (void)testDTMFResetPreservesTransferNameBinding {
+    CallWindowControllerStub *controller = [CallWindowControllerStub new];
+    controller.displayedName = @"100";
+    controller.contactName = @"Unknown Contact";
+    controller.call = [CallWindowCallStub new];
+    ActiveCallViewController *view = [[ActiveCallViewController alloc] initWithNibName:@"unused" callController:(id)controller];
+    view.view = [NSView new];
+    NSTextField *name = [NSTextField new];
+    [view setValue:name forKey:@"displayedNameField"];
+    [name bind:NSValueBinding toObject:controller withKeyPath:@"displayedName" options:nil];
+    [view resetDTMF];
+    XCTAssertEqualObjects(name.stringValue, @"100");
+    [view activeCallView:nil didReceiveText:@"2"];
+    [view resetDTMF];
+    XCTAssertEqualObjects(name.stringValue, @"100");
+    XCTAssertEqualObjects(view.enteredDTMF, @"");
+    controller.displayedName = @"101";
+    XCTAssertEqualObjects(name.stringValue, @"101");
     [name unbind:NSValueBinding];
 }
 

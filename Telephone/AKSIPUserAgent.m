@@ -278,6 +278,7 @@ static const BOOL kAKSIPUserAgentDefaultLocksCodec = YES;
     }
     self.state = AKSIPUserAgentStateStarting;
     void (^completion)(BOOL) = ^(BOOL didStart) {
+        if (!didStart) { pj_shutdown(); }
         self.state = didStart ? AKSIPUserAgentStateStarted : AKSIPUserAgentStateStopped;
         [[NSNotificationCenter defaultCenter] postNotificationName:AKSIPUserAgentDidFinishStartingNotification object:self];
     };

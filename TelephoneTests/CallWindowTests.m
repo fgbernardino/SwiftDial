@@ -6,8 +6,11 @@
 @property AKSIPCallState state;
 @property(getter=isMicrophoneMuted) BOOL microphoneMuted;
 @property(getter=isOnRemoteHold) BOOL onRemoteHold;
+@property(copy) NSString *sentDigits;
+- (void)sendDTMFDigits:(NSString *)digits;
 @end
 @implementation CallWindowCallStub
+- (void)sendDTMFDigits:(NSString *)digits { self.sentDigits = [(self.sentDigits ?: @"") stringByAppendingString:digits]; }
 @end
 
 @interface CallWindowControllerStub : NSObject
@@ -15,6 +18,9 @@
 @property(copy) NSString *elapsedTime;
 @property(copy) NSString *status;
 @property(strong) CallWindowCallStub *call;
+@property(copy) NSString *contactName;
+@property(copy) NSString *displayedName;
+@property(strong) id endedCallViewController;
 @end
 @implementation CallWindowControllerStub
 @end
@@ -23,6 +29,29 @@
 @end
 
 @implementation CallWindowTests
+- (void)testDTMFReplacesContactNameWithAccumulatedDigits {
+    CallWindowControllerStub *controller = [CallWindowControllerStub new];
+    controller.contactName = @"Maria";
+    controller.displayedName = @"Maria";
+    controller.call = [CallWindowCallStub new];
+    ActiveCallViewController *view = [[ActiveCallViewController alloc] initWithNibName:@"unused" callController:(id)controller];
+    view.view = [NSView new];
+    NSTextField *name = [NSTextField new];
+    [view setValue:name forKey:@"displayedNameField"];
+    [name bind:NSValueBinding toObject:controller withKeyPath:@"contactName" options:nil];
+    XCTAssertEqualObjects(name.stringValue, @"Maria");
+    [view activeCallView:nil didReceiveText:@"!"];
+    XCTAssertEqualObjects(name.stringValue, @"Maria");
+    XCTAssertNil(controller.call.sentDigits);
+    [view activeCallView:nil didReceiveText:@"1"];
+    XCTAssertEqualObjects(name.stringValue, @"1");
+    [view activeCallView:nil didReceiveText:@"2*#"];
+    XCTAssertEqualObjects(name.stringValue, @"12*#");
+    XCTAssertEqualObjects(controller.call.sentDigits, @"12*#");
+    XCTAssertEqualObjects(controller.contactName, @"Maria");
+    [name unbind:NSValueBinding];
+}
+
 - (void)testElapsedTimeDoesNotReplaceMutedOrHeldStatus {
     CallWindowControllerStub *controller = [CallWindowControllerStub new];
     controller.call = [CallWindowCallStub new];

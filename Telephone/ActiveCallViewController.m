@@ -182,6 +182,8 @@
     
     if (isDTMFValid) {
         if ([[self enteredDTMF] length] == 0) {
+            [self.displayedNameField unbind:NSValueBinding];
+            [self.displayedNameField bind:NSValueBinding toObject:self.callController withKeyPath:@"displayedName" options:nil];
             [[self enteredDTMF] appendString:aString];
             [[[self view] window] setTitle:[[self callController] displayedName]];
             

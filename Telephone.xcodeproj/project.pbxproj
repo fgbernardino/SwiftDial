@@ -592,6 +592,8 @@
 		F18000000000000000000012 /* UserDirectoryWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18000000000000000000002 /* UserDirectoryWindowController.swift */; };
 		F18000000000000000000021 /* UserDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18000000000000000000001 /* UserDirectory.swift */; };
 		F18000000000000000000022 /* UserDirectoryWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18000000000000000000002 /* UserDirectoryWindowController.swift */; };
+		B72000000000000000000001 /* SystemServicesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B72000000000000000000002 /* SystemServicesTests.m */; };
+		B72000000000000000000003 /* AKNetworkReachability.m in Sources */ = {isa = PBXBuildFile; fileRef = AAAC618B0FE6A42900FBE053 /* AKNetworkReachability.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1373,6 +1375,7 @@
 		F18000000000000000000002 /* UserDirectoryWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserDirectoryWindowController.swift; path = Telephone/UserDirectoryWindowController.swift; sourceTree = SOURCE_ROOT; };
 		F406B82B6601F85247C1D602 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		F44E109B51EB72DFE2719A71 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "pt-BR"; path = "pt-BR.lproj/ActiveCallTransferView.xib"; sourceTree = "<group>"; };
+		B72000000000000000000002 /* SystemServicesTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SystemServicesTests.m; path = TelephoneTests/SystemServicesTests.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1499,6 +1502,7 @@
 				F14000000000000000000003 /* BrazilianNumberFormattingTests.swift */,
 				F11000000000000000000006 /* SIPLogTests.m */,
 				B71000000000000000000003 /* CallWindowTests.m */,
+				B72000000000000000000002 /* SystemServicesTests.m */,
 				8AA891DB1F83F69F0064B2EA /* SanitizedCallDestinationTests.swift */,
 				8AA748821D6DEE61000587DC /* SettingsAccount.swift */,
 				8AA748801D6DECAB000587DC /* SettingsAccounts.swift */,
@@ -3335,6 +3339,8 @@
 				F11000000000000000000003 /* SIPLogTests.m in Sources */,
 				B71000000000000000000001 /* ActiveCallViewController.m in Sources */,
 				B71000000000000000000002 /* CallWindowTests.m in Sources */,
+				B72000000000000000000001 /* SystemServicesTests.m in Sources */,
+				B72000000000000000000003 /* AKNetworkReachability.m in Sources */,
 				8A769CFB2825A43400BC57CB /* ClipboardSpy.swift in Sources */,
 				8ADA10A71DC8D6E90038E0A5 /* SettingsMigrationFactory.swift in Sources */,
 				8ADA109D1DC8D3040038E0A5 /* ProgressiveSettingsMigrationTests.swift in Sources */,

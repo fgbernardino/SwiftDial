@@ -263,7 +263,7 @@ NS_ASSUME_NONNULL_END
     
     [controller showWindowWithoutMakingKey];
 
-    [self.accountControllers registerAccountIfManualRegistrationRequired:controller];
+    [controller registerAccount];
 }
 
 
@@ -296,7 +296,7 @@ NS_ASSUME_NONNULL_END
         
         [controller showWindowWithoutMakingKey];
 
-        [self.accountControllers registerAccountIfManualRegistrationRequired:controller];
+        [controller registerAccount];
         
     } else {
         AccountController *controller = self.accountControllers[index];
@@ -557,7 +557,7 @@ NS_ASSUME_NONNULL_END
     [self.accountControllers updateCallsShouldDisplayAccountInfo];
     [self.accountsMenuItems update];
     [self setShouldPresentUserAgentLaunchError:YES];
-    [self.accountControllers registerAllAccountsWhereManualRegistrationRequired];
+    [self.accountControllers registerAllAccounts];
     [self makeCallAfterLaunchIfNeeded];
     [self.compositionRoot.orphanLogFileRemoval performSelector:@selector(execute) withObject:nil afterDelay:0];
     [self showAccountPreferencesIfNeeded];
@@ -707,7 +707,7 @@ NS_ASSUME_NONNULL_END
 
 - (void)workspaceDidWake:(NSNotification *)notification {
     if (self.isUserSessionActive) {
-        [self.accountControllers registerReachableAccounts];
+        [self.accountControllers registerAllAccounts];
     }
 }
 

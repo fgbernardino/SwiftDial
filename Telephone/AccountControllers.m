@@ -18,7 +18,6 @@
 
 #import "AccountControllers.h"
 
-#import "AKNetworkReachability.h"
 #import "AKSIPUserAgent.h"
 
 #import "AccountController.h"
@@ -137,26 +136,6 @@
 
 - (void)registerAllAccounts {
     for (AccountController *controller in self.enabled) {
-        [controller registerAccount];
-    }
-}
-
-- (void)registerReachableAccounts {
-    for (AccountController *controller in self.enabled) {
-        if ([controller.registrarReachability isReachable]) {
-            [controller registerAccount];
-        }
-    }
-}
-
-- (void)registerAllAccountsWhereManualRegistrationRequired {
-    for (AccountController *controller in self.enabled) {
-        [self registerAccountIfManualRegistrationRequired:controller];
-    }
-}
-
-- (void)registerAccountIfManualRegistrationRequired:(AccountController *)controller {
-    if (controller.account.registrar.host.ak_isIPAddress && controller.registrarReachability.isReachable) {
         [controller registerAccount];
     }
 }

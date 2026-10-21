@@ -18,90 +18,44 @@
 
 #import "AKKeychain.h"
 
+@import Security;
+
 @implementation AKKeychain
 
 + (nonnull NSString *)passwordForService:(nonnull NSString *)service account:(nonnull NSString *)account {
     NSParameterAssert(service);
     NSParameterAssert(account);
-
-    void *passwordData = nil;
-    UInt32 passwordLength;
-    OSStatus findStatus;
-    
-    findStatus = SecKeychainFindGenericPassword(NULL,   // Default keychain.
-                                                (UInt32)[service lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                                [service UTF8String],
-                                                (UInt32)[account lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                                [account UTF8String],
-                                                &passwordLength,
-                                                &passwordData,
-                                                NULL);  // Keychain item reference.
-    
-    if (findStatus != noErr) {
-        return @"";
-    }
-    
-    NSString *password = [[NSString alloc] initWithBytes:passwordData
-                                                   length:passwordLength
-                                                 encoding:NSUTF8StringEncoding];
-    
-    SecKeychainItemFreeContent(NULL, passwordData);
-    
-    return password;
+    NSDictionary *query = @{
+        (__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
+        (__bridge id)kSecAttrService: service,
+        (__bridge id)kSecAttrAccount: account,
+        (__bridge id)kSecReturnData: @YES,
+        (__bridge id)kSecMatchLimit: (__bridge id)kSecMatchLimitOne
+    };
+    CFTypeRef result = NULL;
+    OSStatus status = SecItemCopyMatching((__bridge CFDictionaryRef)query, &result);
+    NSData *data = CFBridgingRelease(result);
+    if (status != errSecSuccess) { return @""; }
+    return [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: @"";
 }
 
 + (BOOL)addItemWithService:(nonnull NSString *)service account:(nonnull NSString *)account password:(nonnull NSString *)password {
     NSParameterAssert(service);
     NSParameterAssert(account);
     NSParameterAssert(password);
-    
-    SecKeychainItemRef keychainItemRef = nil;
-    OSStatus addStatus, findStatus, modifyStatus;
-    BOOL success = NO;
-    NSData *passwordData = [password dataUsingEncoding:NSUTF8StringEncoding];
-    
-    // Add item to keychain.
-    addStatus = SecKeychainAddGenericPassword(NULL,   // NULL for default keychain.
-                                              (UInt32)[service lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                              [service UTF8String],
-                                              (UInt32)[account lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                              [account UTF8String],
-                                              (UInt32)passwordData.length,
-                                              passwordData.bytes,
-                                              NULL);  // Don't need keychain item reference.
-    
-    if (addStatus == noErr) {
-        success = YES;
-        
-    } else if (addStatus == errSecDuplicateItem) {
-        // Get the pointer to the duplicate item.
-        findStatus = SecKeychainFindGenericPassword(NULL,               // Default keychain.
-                                                    (UInt32)[service lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                                    [service UTF8String],
-                                                    (UInt32)[account lengthOfBytesUsingEncoding:NSUTF8StringEncoding],
-                                                    [account UTF8String],
-                                                    NULL,
-                                                    NULL,
-                                                    &keychainItemRef);  // Pointer to the duplicate item.
-        
-        if (findStatus == noErr) {
-            // Modify password in the duplicate item.
-            modifyStatus = SecKeychainItemModifyAttributesAndData(keychainItemRef,
-                                                                  NULL,  // No changes in attributes.
-                                                                  (UInt32)passwordData.length,
-                                                                  passwordData.bytes);
-            
-            if (modifyStatus == noErr) {
-                success = YES;
-            }
-        }
+    NSDictionary *query = @{
+        (__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
+        (__bridge id)kSecAttrService: service,
+        (__bridge id)kSecAttrAccount: account
+    };
+    NSDictionary *values = @{(__bridge id)kSecValueData: [password dataUsingEncoding:NSUTF8StringEncoding]};
+    NSMutableDictionary *item = [query mutableCopy];
+    [item addEntriesFromDictionary:values];
+    OSStatus status = SecItemAdd((__bridge CFDictionaryRef)item, NULL);
+    if (status == errSecDuplicateItem) {
+        status = SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)values);
     }
-    
-    if (keychainItemRef != nil) {
-        CFRelease(keychainItemRef);
-    }
-    
-    return success;
+    return status == errSecSuccess;
 }
 
 @end

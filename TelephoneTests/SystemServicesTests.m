@@ -4,11 +4,13 @@
 #import "../Telephone/AKNetworkReachability.h"
 
 static NSDictionary *lastQuery;
+static NSDictionary *lastLookup;
 static NSDictionary *lastUpdate;
 static OSStatus readStatus, addStatus, updateStatus;
 static NSData *readData;
 static OSStatus TestCopyMatching(CFDictionaryRef query, CFTypeRef *result) {
     lastQuery = [(__bridge NSDictionary *)query copy];
+    lastLookup = lastQuery;
     *result = readData == nil ? NULL : CFBridgingRetain(readData);
     return readStatus;
 }
@@ -40,6 +42,7 @@ static OSStatus TestUpdate(CFDictionaryRef query, CFDictionaryRef values) {
 - (void)setUp {
     [super setUp];
     lastQuery = nil;
+    lastLookup = nil;
     lastUpdate = nil;
     readData = nil;
     readStatus = addStatus = updateStatus = errSecSuccess;
@@ -62,9 +65,13 @@ static OSStatus TestUpdate(CFDictionaryRef query, CFDictionaryRef values) {
     XCTAssertEqualObjects(lastQuery[(__bridge id)kSecValueData], [@"á" dataUsingEncoding:NSUTF8StringEncoding]);
     XCTAssertNil(lastUpdate);
     addStatus = errSecDuplicateItem;
+    readData = [@"first-item-reference" dataUsingEncoding:NSUTF8StringEncoding];
     XCTAssertTrue([AKKeychain addItemWithService:@"SIP: example.test" account:@"100" password:@""]);
-    XCTAssertEqualObjects(lastQuery[(__bridge id)kSecAttrService], @"SIP: example.test");
-    XCTAssertEqualObjects(lastQuery[(__bridge id)kSecAttrAccount], @"100");
+    XCTAssertEqualObjects(lastLookup[(__bridge id)kSecAttrService], @"SIP: example.test");
+    XCTAssertEqualObjects(lastLookup[(__bridge id)kSecAttrAccount], @"100");
+    XCTAssertEqualObjects(lastLookup[(__bridge id)kSecMatchLimit], (__bridge id)kSecMatchLimitOne);
+    XCTAssertEqualObjects(lastLookup[(__bridge id)kSecReturnPersistentRef], @YES);
+    XCTAssertEqualObjects(lastQuery[(__bridge id)kSecMatchItemList], @[readData]);
     XCTAssertEqualObjects(lastUpdate[(__bridge id)kSecValueData], [NSData data]);
     updateStatus = errSecAuthFailed;
     XCTAssertFalse([AKKeychain addItemWithService:@"SIP: example.test" account:@"100" password:@"new"]);
@@ -72,6 +79,15 @@ static OSStatus TestUpdate(CFDictionaryRef query, CFDictionaryRef values) {
     addStatus = errSecAuthFailed;
     XCTAssertFalse([AKKeychain addItemWithService:@"SIP: example.test" account:@"100" password:@"new"]);
     XCTAssertNil(lastUpdate);
+}
+- (void)testDuplicatePasswordIsNotUpdatedWhenItemLookupFails {
+    addStatus = errSecDuplicateItem;
+    for (NSNumber *status in @[@(errSecItemNotFound), @(errSecAuthFailed), @(errSecSuccess)]) {
+        readStatus = status.intValue;
+        readData = nil;
+        XCTAssertFalse([AKKeychain addItemWithService:@"SIP: example.test" account:@"100" password:@"new"]);
+        XCTAssertNil(lastUpdate);
+    }
 }
 - (void)testNetworkPathNotificationsIncludeUsableRouteChangesAndOnDemandConnections {
     XCTAssertNil([AKNetworkReachability networkReachabilityWithHost:@""]);

@@ -53,7 +53,19 @@
     [item addEntriesFromDictionary:values];
     OSStatus status = SecItemAdd((__bridge CFDictionaryRef)item, NULL);
     if (status == errSecDuplicateItem) {
-        status = SecItemUpdate((__bridge CFDictionaryRef)query, (__bridge CFDictionaryRef)values);
+        NSMutableDictionary *lookup = [query mutableCopy];
+        lookup[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
+        lookup[(__bridge id)kSecReturnPersistentRef] = @YES;
+        CFTypeRef result = NULL;
+        status = SecItemCopyMatching((__bridge CFDictionaryRef)lookup, &result);
+        id reference = CFBridgingRelease(result);
+        if (status != errSecSuccess || reference == nil) { return NO; }
+        // Update only the item selected by the same first-match lookup used when reading.
+        NSDictionary *selectedItem = @{
+            (__bridge id)kSecClass: (__bridge id)kSecClassGenericPassword,
+            (__bridge id)kSecMatchItemList: @[reference]
+        };
+        status = SecItemUpdate((__bridge CFDictionaryRef)selectedItem, (__bridge CFDictionaryRef)values);
     }
     return status == errSecSuccess;
 }

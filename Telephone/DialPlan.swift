@@ -4,6 +4,7 @@ import Foundation
 @objcMembers
 final class DialPlan: NSObject {
     static let settingsKey = "DialPlan"
+    @nonobjc static let changed = Notification.Name("SwiftDialDialPlanChanged")
     private let rules: [[Atom]]
     private static let dialCharacters = Set("0123456789+*#")
 

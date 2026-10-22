@@ -22,6 +22,28 @@ import XCTest
 
 @MainActor
 final class CallHistoryViewPresenterTests: XCTestCase {
+    func testCorrectionUsesRecordedDestinationInsteadOfMatchedContactNumber() async throws {
+        let contact = MatchedContact(name: "Saved contact", address: .phone(number: "04312", label: "work"))
+        let uris = [URI(user: "0434312", host: "", displayName: ""),
+                    URI(user: "0434312", address: ServiceAddress(host: "pbx.example", port: "5070"),
+                        displayName: "", transport: .tcp)]
+        let shown = expectation(description: "History retains recorded routing")
+        var presented: [PresentationCallHistoryRecord] = []
+        let view = CallHistoryViewSpy { records in presented = records; shown.fulfill() }
+        let presenter = CallHistoryViewPresenter(view: view, dateFormatter: ShortRelativeDateTimeFormatter(),
+                                                durationFormatter: DurationFormatter())
+        await presenter.update(records: uris.map {
+            ContactCallHistoryRecord(origin: CallHistoryRecord(uri: $0, date: Date(), duration: 1,
+                                                                isIncoming: false, isMissed: false), contact: contact)
+        })
+        await fulfillment(of: [shown], timeout: 1)
+        XCTAssertEqual(presented[0].contact.address, "04312")
+        XCTAssertEqual(presented[0].sourceAddress, "0434312")
+        XCTAssertEqual(presented[1].sourceAddress, "sip:0434312@pbx.example:5070;transport=tcp")
+        let plan = try DialPlan("<0:043>x.")
+        XCTAssertEqual(try plan.apply(to: XCTUnwrap(presented[0].sourceAddress), fromHistory: true), "0434312")
+    }
+
     func testReadsSplitPreferenceAgainWhenHistoryReloads() async {
         let defaults = UserDefaults.standard
         let formatKey = UserDefaultsKeys.formatTelephoneNumbers
@@ -151,7 +173,8 @@ private func makePresentationCallHistoryRecord(contact: MatchedContact, record: 
         date: ShortRelativeDateTimeFormatter().string(from: record.date),
         duration: DurationFormatter().string(from: TimeInterval(record.duration))!,
         isIncoming: record.isIncoming,
-        sourceNumber: record.uri.user
+        sourceNumber: record.uri.user,
+            sourceAddress: record.uri.host.isEmpty ? record.uri.user : record.uri.stringValue
     )
 }
 

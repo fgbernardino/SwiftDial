@@ -20,6 +20,7 @@ import Cocoa
 import UseCases
 
 final class PresentationCallHistoryRecord: NSObject {
+    let sourceAddress: String?
     let sourceNumber: String?
     let identifier: String
     @objc let contact: PresentationContact
@@ -27,7 +28,8 @@ final class PresentationCallHistoryRecord: NSObject {
     @objc let duration: String
     @objc let isIncoming: Bool
 
-    init(identifier: String, contact: PresentationContact, date: String, duration: String, isIncoming: Bool, sourceNumber: String? = nil) {
+    init(identifier: String, contact: PresentationContact, date: String, duration: String, isIncoming: Bool, sourceNumber: String? = nil, sourceAddress: String? = nil) {
+        self.sourceAddress = sourceAddress
         self.sourceNumber = sourceNumber
         self.identifier = identifier
         self.contact = contact
@@ -45,6 +47,7 @@ extension PresentationCallHistoryRecord {
 
     override var hash: Int {
         var hasher = Hasher()
+        hasher.combine(sourceAddress)
         hasher.combine(sourceNumber)
         hasher.combine(identifier)
         hasher.combine(contact)
@@ -56,6 +59,7 @@ extension PresentationCallHistoryRecord {
 
     private func isEqual(to record: PresentationCallHistoryRecord) -> Bool {
         return
+            sourceAddress == record.sourceAddress &&
             sourceNumber == record.sourceNumber &&
             identifier == record.identifier &&
             contact == record.contact &&

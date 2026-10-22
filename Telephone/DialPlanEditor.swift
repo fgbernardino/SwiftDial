@@ -47,6 +47,7 @@ final class DialPlanEditor: NSObject {
                 guard let index = current.firstIndex(where: { $0[AKSIPAccountKeys.uuid] as? String == accountID }) else { return }
                 current[index][DialPlan.settingsKey] = plan.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
                 defaults.set(current, forKey: UserDefaultsKeys.accounts)
+                NotificationCenter.default.post(name: DialPlan.changed, object: accountID)
                 return
             } catch { result.stringValue = error.localizedDescription }
         }

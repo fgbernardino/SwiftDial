@@ -52,6 +52,8 @@ final class CallHistoryViewController: NSViewController {
                                                name: UserDefaults.didChangeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(localContactsDidChange),
                                                name: LocalContacts.changed, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(localContactsDidChange),
+                                               name: DialPlan.changed, object: nil)
         tableView.enclosingScrollView?.hasHorizontalScroller = false
         tableView.enclosingScrollView?.horizontalScrollElasticity = .none
         tableView.columnAutoresizingStyle = .sequentialColumnAutoresizingStyle
@@ -75,8 +77,8 @@ final class CallHistoryViewController: NSViewController {
 
     @objc func correctNumberFromHistory(_ sender: Any) {
         let row = clickedOrSelectedRow()
-        guard records.indices.contains(row) else { return }
-        correctNumber?(records[row].contact.address)
+        guard records.indices.contains(row), let address = records[row].sourceAddress, !address.isEmpty else { return }
+        correctNumber?(address)
     }
 
     @objc nonisolated private func formattingSettingsDidChange() {
@@ -275,7 +277,7 @@ extension CallHistoryViewController: NSMenuItemValidation {
         switch item.action {
         case #selector(correctNumberFromHistory(_:)):
             let row = clickedOrSelectedRow()
-            return records.indices.contains(row) && !records[row].contact.address.isEmpty && correctNumber != nil
+            return records.indices.contains(row) && !(records[row].sourceAddress ?? "").isEmpty && correctNumber != nil
         case #selector(saveContactFromHistory(_:)):
             let row = clickedOrSelectedRow()
             guard records.indices.contains(row), let accountID = target?.accountID,

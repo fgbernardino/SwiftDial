@@ -3,6 +3,56 @@ calls over the Internet or your company network. If your phone line
 supports SIP protocol, you can use it on your Mac instead of a
 physical phone anywhere you have a decent network connection.
 
+## SwiftDial changelog
+
+### Current changes
+
+- **Updated deprecated components:** replaced legacy Keychain APIs with `SecItemCopyMatching`, `SecItemAdd`, and `SecItemUpdate`, and replaced deprecated network reachability APIs with Apple's Network framework path monitor.
+- **Local contacts:** save, edit, delete, and call contacts stored locally in SwiftDial, separately from macOS Contacts and the shared User Directory. Saved names appear in calls and call history. Phone numbers retain their original values; the dial plan is applied when calling. Contacts can also be saved from call history.
+- **Brazilian Portuguese (PT-BR):** added translations for menus, preferences, account setup, call windows, call history, contacts, directory, and dial-plan controls.
+- **Expanded call history:** retain 1,000 records and beyond per account. The current implementation has no fixed record cap and persists history between launches.
+- **User Directory sync:** added a read-only shared directory using the MicroSIP-style JSON response described below, with automatic refresh, manual refresh, local caching, and calling from the directory. Local contacts remain separate and take precedence when matching names.
+- **Dial plan:** added per-account MicroSIP-style digit-map rules for matching and rewriting outgoing numbers, with validation and a **Test without calling** action. See the syntax and example below.
+- **Improved call windows:** show the contact name, formatted phone number, call status, and a separate elapsed-time display (`MM:SS`, or `HH:MM:SS` for longer calls). Added visible **Mute / Unmute** and **Transfer…** buttons alongside **End Call**. Mute and transfer are enabled once the call connects; transfer is disabled during remote hold and opens the transfer sheet, placing the call on local hold if needed. Typed DTMF digits are displayed during a call and reset when redialing.
+
+### User Directory JSON example
+
+Open **Local Contacts → User Directory…**, enter an HTTPS endpoint URL, and choose **Save URL**. The endpoint should return JSON in this format:
+
+```json
+{
+  "refresh": 300,
+  "items": [
+    { "name": "Reception", "number": "100" },
+    { "name": "Support", "number": "101" },
+    { "name": "Curitiba Office", "number": "04133334444" }
+  ]
+}
+```
+
+`items` contains contacts with a nonempty `name` and a valid phone `number`. Numbers must be JSON strings to preserve leading zeros, and duplicate numbers are rejected. `refresh` is an optional interval in seconds: positive values are limited to 30–86,400 seconds; an omitted, zero, or negative value disables periodic refresh after a successful fetch. **Refresh** fetches the directory manually. Failed updates retain the last valid cached directory and retry after five minutes. Leave the URL empty to disable the directory.
+
+### MicroSIP-style dial-plan example
+
+Configure the dial plan in the account preferences. SwiftDial supports MicroSIP-style digit maps, not unrestricted regular expressions:
+
+| Syntax | Meaning |
+| --- | --- |
+| `x` | Match one dialing character (`0`–`9`, `+`, `*`, or `#`). |
+| `.` | Repeat the preceding character or character set zero or more times. |
+| `[2-9]` | Match a character from a set or numeric range. |
+| `\|` | Separate rules; the first full match wins. |
+| `<old:new>` | Replace matched text; `<:new>` inserts and `<old:>` removes it. |
+| `(…)` | Optionally wrap the entire plan. |
+
+```text
+xxx|xxxxxxxx|xxxxxxxxx|0800x.|0300x.|<0:043>x.
+```
+
+This example keeps three-character extensions, eight- and nine-character numbers, and numbers starting with `0800` or `0300` unchanged. Otherwise, a leading `0` is replaced with `043`: `04133334444` becomes `0434133334444`.
+
+Numbers that match no rule are blocked. An empty plan disables this feature. Rules run before the account's `+` substitution. History dialing avoids repeating recognized replacements; explicit SIP addresses and call-window redial use the stored destination.
+
 ## Building
 
 ### Opus

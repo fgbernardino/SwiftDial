@@ -38,9 +38,11 @@
 
 #import "Telephone-Swift.h"
 
+@import UserNotifications;
+
 
 // Window auto-close delay.
-static const NSTimeInterval kCallWindowAutoCloseTime = 1.5;
+static const NSTimeInterval kCallWindowAutoCloseTime = 5.0;
 
 // Redial button re-enable delay.
 static const NSTimeInterval kRedialButtonReenableTime = 1.0;
@@ -123,6 +125,28 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
     }
 }
 
++ (NSSet<NSString *> *)keyPathsForValuesAffectingFormattedNumber {
+    return [NSSet setWithObjects:@"enteredCallDestination", @"redialURI", @"call", nil];
+}
+
+- (NSString *)formattedNumber {
+    NSString *number = self.enteredCallDestination.length ? self.enteredCallDestination :
+        (self.redialURI.user ?: self.call.remoteURI.user ?: @"");
+    if (![self.defaults boolForKey:UserDefaultsKeys.formatTelephoneNumbers]) { return number; }
+    AKTelephoneNumberFormatter *formatter = [[AKTelephoneNumberFormatter alloc] init];
+    formatter.splitsLastFourDigits = [self.defaults boolForKey:UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits];
+    return [formatter stringForObjectValue:number] ?: number;
+}
+
++ (NSSet<NSString *> *)keyPathsForValuesAffectingContactName {
+    return [NSSet setWithObjects:@"nameFromAddressBook", @"redialURI", @"call", nil];
+}
+
+- (NSString *)contactName {
+    NSString *name = self.nameFromAddressBook.length ? self.nameFromAddressBook : self.redialURI.displayName;
+    return name.length ? name : NSLocalizedString(@"Unknown Contact", @"Call without a contact name.");
+}
+
 - (BOOL)isCallUnhandled {
     return self.call.isMissed;
 }
@@ -134,6 +158,7 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 
     if ((self = [self initWithWindowNibName:windowNibName])) {
         _identifier = [NSUUID UUID].UUIDString;
+        _elapsedTime = @"00:00";
         _accountController = accountController;
         _userAgent = userAgent;
         _delegate = delegate;
@@ -305,7 +330,6 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
     
     if ([[self call] isMicrophoneMuted]) {
         if (![self isCallOnHold]) {
-            [[self activeCallViewController] stopCallTimer];
             [self setStatus:NSLocalizedString(@"mic muted", @"Microphone muted status text.")];
         } else {
             [self setIntermediateStatus:NSLocalizedString(@"mic muted", @"Microphone muted status text.")];
@@ -320,7 +344,6 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
         [[self intermediateStatusTimer] invalidate];
     }
     
-    [[self activeCallViewController] stopCallTimer];
     [self setStatus:newIntermediateStatus];
     [self setIntermediateStatusTimer:
      [NSTimer scheduledTimerWithTimeInterval:3.0
@@ -340,7 +363,7 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
         [self setStatus:
          NSLocalizedString(@"mic muted", @"Microphone muted status text.")];
     } else if ([[self call] isActive]) {
-        [[self activeCallViewController] startCallTimer];
+        [self setStatus:NSLocalizedString(@"Connected", @"Connected call status.")];
     }
     
     [self setIntermediateStatusTimer:nil];
@@ -353,8 +376,13 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 }
 
 - (void)prepareForCall {
+    [self.intermediateStatusTimer invalidate];
+    self.intermediateStatusTimer = nil;
+    [self.activeCallViewController stopCallTimer];
+    self.elapsedTime = @"00:00";
     self.window.styleMask &= ~NSWindowStyleMaskClosable;
     [self showActiveCallView];
+    [self.activeCallViewController resetDTMF];
     [self.activeCallViewController showProgress];
     [self.activeCallViewController disallowHangUp];
 }
@@ -364,6 +392,9 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 }
 
 - (void)showEndedCallView {
+    [self.intermediateStatusTimer invalidate];
+    self.intermediateStatusTimer = nil;
+    [self.activeCallViewController stopCallTimer];
     self.window.styleMask |= NSWindowStyleMaskClosable;
     [self showViewController:self.endedCallViewController];
 }
@@ -395,13 +426,10 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 }
 
 - (void)removeUserNotification {
-    NSUserNotificationCenter *center = NSUserNotificationCenter.defaultUserNotificationCenter;
-    for (NSUserNotification *notification in center.deliveredNotifications) {
-        if ([notification.identifier isEqualToString:self.identifier]) {
-            [center removeDeliveredNotification:notification];
-            break;
-        }
-    }
+    [[UNUserNotificationCenter currentNotificationCenter]
+        removePendingNotificationRequestsWithIdentifiers:@[self.identifier]];
+    [[UNUserNotificationCenter currentNotificationCenter]
+        removeDeliveredNotificationsWithIdentifiers:@[self.identifier]];
 }
 
 - (void)showUserNotification {
@@ -422,11 +450,18 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
          [self.defaults boolForKey:UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits]];
         notificationTitle = [SIPURIFormatter stringForObjectValue:[[self call] remoteURI]];
     }
-    NSUserNotification *userNotification = [[NSUserNotification alloc] init];
-    userNotification.identifier = self.identifier;
-    userNotification.title = notificationTitle;
-    userNotification.informativeText = self.status;
-    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:userNotification];
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = notificationTitle;
+    content.body = self.status;
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:self.identifier
+                                                                         content:content
+                                                                         trigger:nil];
+    [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:request
+                                                          withCompletionHandler:^(NSError *error) {
+        if (error) {
+            NSLog(@"Could not deliver call notification (code %ld).", (long)error.code);
+        }
+    }];
 }
 
 - (void)updateWindowTitle {
@@ -479,7 +514,8 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
     [self setCallStartTime:[NSDate timeIntervalSinceReferenceDate]];
     [self showActiveCallView];
     [self.activeCallViewController showHangUp];
-    [self setStatus:@"00:00"];
+    self.elapsedTime = @"00:00";
+    [self setStatus:NSLocalizedString(@"Connected", @"Connected call status.")];
     [[self activeCallViewController] startCallTimer];
 }
 
@@ -567,13 +603,11 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 
 - (void)SIPCallDidLocalHold:(NSNotification *)notification {
     [self setCallOnHold:YES];
-    [[self activeCallViewController] stopCallTimer];
     [self setStatus:NSLocalizedString(@"on hold", @"Call on local hold status text.")];
 }
 
 - (void)SIPCallDidRemoteHold:(NSNotification *)notification {
     [self setCallOnHold:YES];
-    [[self activeCallViewController] stopCallTimer];
     [self setStatus:NSLocalizedString(@"on remote hold", @"Call on remote hold status text.")];
 }
 

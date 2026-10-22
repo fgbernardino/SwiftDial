@@ -20,9 +20,9 @@
 public final class TruncatingCallHistory {
     private var records = [CallHistoryRecord]()
 
-    private let limit: Int
+    private let limit: Int?
 
-    public nonisolated init(limit: Int = 100) {
+    public nonisolated init(limit: Int? = nil) {
         self.limit = limit
     }
 }
@@ -34,7 +34,7 @@ extension TruncatingCallHistory: CallHistory {
 
     public func add(_ record: CallHistoryRecord) {
         records.append(record)
-        if records.count > limit {
+        if let limit, records.count > limit {
             records = [CallHistoryRecord](records.suffix(limit))
         }
     }

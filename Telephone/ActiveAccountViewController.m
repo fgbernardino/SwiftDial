@@ -35,6 +35,12 @@
 NSString * const kURI = @"URI";
 NSString * const kPhoneLabel = @"PhoneLabel";
 
+@interface ActiveAccountViewController ()
+@property(nonatomic) NSButton *dialButton;
+@property(nonatomic) NSButton *dialPadButton;
+@property(nonatomic) NSPopover *dialPadPopover;
+@end
+
 @implementation ActiveAccountViewController
 
 - (AKSIPURI *)callDestinationURI {
@@ -79,6 +85,76 @@ NSString * const kPhoneLabel = @"PhoneLabel";
     [[self callDestinationField] setTokenizingCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@""]];
     
     [[self callDestinationField] setCompletionDelay:0.4];
+    self.dialButton = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"phone.fill" accessibilityDescription:nil]
+                                       target:self action:@selector(dialWithMouse:)];
+    self.dialPadButton = [NSButton buttonWithImage:[NSImage imageWithSystemSymbolName:@"circle.grid.3x3.fill" accessibilityDescription:nil]
+                                          target:self action:@selector(showDialPad:)];
+    self.dialButton.toolTip = NSLocalizedString(@"Dial", @"Call button.");
+    self.dialPadButton.toolTip = NSLocalizedString(@"Dial Pad", @"Dial pad button.");
+    for (NSButton *button in @[self.dialButton, self.dialPadButton]) {
+        button.bezelStyle = NSBezelStyleRounded;
+        button.accessibilityLabel = button.toolTip;
+        button.translatesAutoresizingMaskIntoConstraints = NO;
+        [self.view addSubview:button];
+        [button.widthAnchor constraintEqualToConstant:28].active = YES;
+        [button.centerYAnchor constraintEqualToAnchor:self.callDestinationField.centerYAnchor].active = YES;
+    }
+    [NSLayoutConstraint activateConstraints:@[
+        [self.dialButton.leadingAnchor constraintEqualToAnchor:self.callDestinationField.trailingAnchor constant:8],
+        [self.dialPadButton.leadingAnchor constraintEqualToAnchor:self.dialButton.trailingAnchor constant:8],
+        [self.dialPadButton.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor constant:-20]
+    ]];
+}
+
+- (void)dialWithMouse:(id)sender {
+    if (!self.allowsCallDestinationInput) { return; }
+    [self.view.window makeFirstResponder:nil];
+    if (![self canMakeCall]) {
+        [self dialDestination:self.callDestinationField.stringValue];
+    } else {
+        [self makeCall:sender];
+    }
+}
+
+- (void)dialDestination:(NSString *)destination {
+    [self dialDestination:destination fromHistory:NO];
+}
+
+- (void)dialDestination:(NSString *)destination fromHistory:(BOOL)fromHistory {
+    if (!self.allowsCallDestinationInput) { return; }
+    id represented = [self tokenField:self.callDestinationField representedObjectForEditingString:destination];
+    if (represented == nil) { return; }
+    self.callDestinationURIIndex = 0;
+    self.callDestinationField.objectValue = @[represented];
+    if (fromHistory) {
+        [self.accountController makeCallFromHistoryToURI:self.callDestinationURI phoneLabel:nil];
+    } else {
+        [self makeCall:self];
+    }
+}
+
+- (void)showDialPad:(NSButton *)sender {
+    if (!self.allowsCallDestinationInput) { return; }
+    if (self.dialPadPopover.isShown) {
+        [self.dialPadPopover close];
+        return;
+    }
+    NSString *destination = [self canMakeCall] ? self.callDestinationURI.user : self.callDestinationField.stringValue;
+    [self editNumberInDialPad:destination fromHistory:NO];
+}
+
+- (void)editNumberInDialPad:(NSString *)destination fromHistory:(BOOL)fromHistory {
+    if (!self.allowsCallDestinationInput) { return; }
+    [self.dialPadPopover close];
+    __weak ActiveAccountViewController *weakSelf = self;
+    DialPadViewController *controller = [[DialPadViewController alloc] initWithDestination:destination dial:^(NSString *number) {
+        [weakSelf.dialPadPopover close];
+        [weakSelf dialDestination:number fromHistory:fromHistory];
+    }];
+    self.dialPadPopover = [[NSPopover alloc] init];
+    self.dialPadPopover.behavior = NSPopoverBehaviorTransient;
+    self.dialPadPopover.contentViewController = controller;
+    [self.dialPadPopover showRelativeToRect:self.dialPadButton.bounds ofView:self.dialPadButton preferredEdge:NSRectEdgeMaxY];
 }
 
 - (IBAction)makeCall:(id)sender {
@@ -107,6 +183,8 @@ NSString * const kPhoneLabel = @"PhoneLabel";
 }
 
 - (void)allowCallDestinationInput {
+    self.dialButton.hidden = NO;
+    self.dialPadButton.hidden = NO;
     [NSAnimationContext runAnimationGroup:^(NSAnimationContext * _Nonnull context) {
         self.callDestinationField.animator.hidden = NO;
     } completionHandler:^{
@@ -118,10 +196,15 @@ NSString * const kPhoneLabel = @"PhoneLabel";
 
 - (void)disallowCallDestinationInput {
     self.callDestinationField.hidden = YES;
+    self.dialButton.hidden = YES;
+    self.dialPadButton.hidden = YES;
+    [self.dialPadPopover close];
 }
 
 - (void)updateNextKeyView:(NSView *)view {
-    self.keyView.nextKeyView = view;
+    self.keyView.nextKeyView = self.dialButton;
+    self.dialButton.nextKeyView = self.dialPadButton;
+    self.dialPadButton.nextKeyView = view;
 }
 
 

@@ -34,19 +34,24 @@ final class CallHistoryViewPresenter {
 
 nonisolated extension CallHistoryViewPresenter: ContactCallHistoryRecordGetAllUseCaseOutput {
     func update(records: [ContactCallHistoryRecord]) {
-        let result = records.map(makeRecord)
         Task { @MainActor in
+            let formatsNumbers = UserDefaults.standard.bool(forKey: UserDefaultsKeys.formatTelephoneNumbers)
+            let splitsDigits = UserDefaults.standard.bool(forKey: UserDefaultsKeys.telephoneNumberFormatterSplitsLastFourDigits)
+            let result = records.map { makeRecord(from: $0, formatsPhoneNumbers: formatsNumbers, splitsLastFourDigits: splitsDigits) }
             view.show(result)
         }
     }
 
-    private func makeRecord(from record: ContactCallHistoryRecord) -> PresentationCallHistoryRecord {
+    private func makeRecord(from record: ContactCallHistoryRecord, formatsPhoneNumbers: Bool, splitsLastFourDigits: Bool) -> PresentationCallHistoryRecord {
         return PresentationCallHistoryRecord(
             identifier: record.origin.identifier,
-            contact: PresentationContact(contact: record.contact, color: contactColor(for: record)),
+            contact: PresentationContact(contact: record.contact, color: contactColor(for: record), formatsPhoneNumbers: formatsPhoneNumbers,
+                                         splitsLastFourDigits: splitsLastFourDigits),
             date: dateFormatter.string(from: record.origin.date),
             duration: durationFormatter.string(from: TimeInterval(record.origin.duration)) ?? "",
-            isIncoming: record.origin.isIncoming
+            isIncoming: record.origin.isIncoming,
+            sourceNumber: record.origin.uri.user,
+            sourceAddress: record.origin.uri.host.isEmpty ? record.origin.uri.user : record.origin.uri.stringValue
         )
     }
 }

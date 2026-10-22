@@ -205,7 +205,7 @@
     if (status == PJ_SUCCESS) {
         self.missed = NO;
     } else {
-        NSLog(@"Error answering call %@", self);
+        NSLog(@"Error answering call");
     }
 }
 
@@ -218,7 +218,7 @@
     if (status == PJ_SUCCESS) {
         self.missed = NO;
     } else {
-        NSLog(@"Error hanging up call %@", self);
+        NSLog(@"Error hanging up call");
     }
 }
 
@@ -230,14 +230,14 @@
                                                   PJSUA_XFER_NO_REQUIRE_REPLACES,
                                                   NULL);
     if (status != PJ_SUCCESS) {
-        NSLog(@"Error transfering call %@", self);
+        NSLog(@"Error transfering call");
     }
 }
 
 - (void)sendRingingNotification {
     pj_status_t status = pjsua_call_answer((pjsua_call_id)[self identifier], PJSIP_SC_RINGING, NULL, NULL);
     if (status != PJ_SUCCESS) {
-        NSLog(@"Error sending ringing notification in call %@", self);
+        NSLog(@"Error sending ringing notification in call");
     }
 }
 
@@ -294,7 +294,7 @@
     if (status == PJ_SUCCESS) {
         [self setMicrophoneMuted:YES];
     } else {
-        NSLog(@"Error muting microphone in call %@", self);
+        NSLog(@"Error muting microphone in call");
     }
 }
 
@@ -310,7 +310,7 @@
     if (status == PJ_SUCCESS) {
         [self setMicrophoneMuted:NO];
     } else {
-        NSLog(@"Error unmuting microphone in call %@", self);
+        NSLog(@"Error unmuting microphone in call");
     }
 }
 

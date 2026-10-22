@@ -4,7 +4,7 @@
 /* Address not found. */
 "Address Not Found" = "Adresse nicht gefunden";
 
-/* Telephone quit confirmation informative text. */
+/* SwiftDial quit confirmation informative text. */
 "All active calls will be disconnected." = "Alle aktiven Gespräche werden beendet.";
 
 /* Call answer button. */
@@ -16,8 +16,8 @@
 /* Call history record removal alert. */
 "Are you sure you want to delete the record “%@”?" = "Wollen Sie den Datensatz „%@“ wirklich löschen?";
 
-/* Telephone quit confirmation. */
-"Are you sure you want to quit Telephone?" = "Wollen Sie Telefon wirklich beenden?";
+/* SwiftDial quit confirmation. */
+"Are you sure you want to quit SwiftDial?" = "Wollen Sie SwiftDial wirklich beenden?";
 
 /* Account registration Available menu item. */
 "Available" = "Verfügbar";
@@ -59,17 +59,11 @@
 /* Account registration Connecting... menu item. */
 "Connecting..." = "Verbinden ...";
 
-/* Products fetch error. */
-"Could not fetch products." = "Die Produkte konnten nicht heruntergeladen werden.";
 
-/* Product purchase error. */
-"Could not make purchase." = "Der Kauf konnte nicht abgeschlossen werden.";
 
 /* Registrar connection error. */
 "Could not register with %@." = "Konnte nicht bei %@ registrieren.";
 
-/* Purchase restoration error. */
-"Could not restore purchases." = "Die Käufe konnten nicht wiederhergestellt werden.";
 
 /* SIP user agent start error. */
 "Could not start SIP user agent." = "Konnte SIP user agent nicht starten.";
@@ -108,8 +102,6 @@
 /* Microphone unmuted status text. */
 "mic unmuted" = "Mikrofon aktiv";
 
-/* Product name. */
-"Monthly" = "Monatlich";
 
 /* Mute. Call menu item. */
 "Mute" = "Mikrofon aus";
@@ -153,17 +145,15 @@
 /* Network settings change confirmation. */
 "Save changes to the network settings?" = "Änderungen an den Netzwerkeinstellungen sichern?";
 
-/* Show more call history records button. */
-"Show %d more…" = "%d mehr anzeigen …";
 
 /* Sound preferences window title. */
 "Sound" = "Ton";
 
 /* Preferences default window title. */
-"Telephone Preferences" = "Telefon Einstellungen";
+"SwiftDial Preferences" = "SwiftDial Einstellungen";
 
 /* Registrar authentication failed. */
-"Telephone was unable to login to %@. Change user name or password and try again." = "Telefon konnte sich nicht in %@ anmelden. Ändern Sie Benutzername oder Passwort und versuchen Sie es erneut.";
+"SwiftDial was unable to login to %@. Change user name or password and try again." = "SwiftDial konnte sich nicht in %@ anmelden. Ändern Sie Benutzername oder Passwort und versuchen Sie es erneut.";
 
 /* Error description. */
 "The error was: “%ld %@”." = "Fehlerbeschreibung: „%1$ld %2$@“.";
@@ -186,8 +176,6 @@
 /* Unknown error. */
 "Unknown error" = "Unbekannter Fehler";
 
-/* Unknown product name. */
-"Unknown product" = "Unbekanntes Produkt";
 
 /* Unmute. Call menu item. */
 "Unmute" = "Mikrofon an";
@@ -195,5 +183,59 @@
 /* Audio device menu item. */
 "Use System Setting" = "Systemeinstellung verwenden";
 
-/* Product name. */
-"Yearly" = "Jährlich";
+"Dial Pad" = "Ziffernblock";
+"Phone number" = "Telefonnummer";
+"Delete digit" = "Ziffer löschen";
+"Dial" = "Anrufen";
+
+"Dial plan" = "Dial plan";
+
+"Dial plan…" = "Dial plan…";
+
+"Test number" = "Test number";
+
+"Test without calling" = "Test without calling";
+
+"Invalid dial plan." = "Invalid dial plan.";
+
+"Number blocked by dial plan." = "Number blocked by dial plan.";
+
+"Call blocked" = "Call blocked";
+
+"MicroSIP syntax. First matching rule wins; other numbers are blocked. Leave empty to disable. Applies before replacing +. History numbers use the plan without repeating recognized replacements. Explicit SIP addresses and call-window redial are used as stored." = "MicroSIP syntax. First matching rule wins; other numbers are blocked. Leave empty to disable. Applies before replacing +. History numbers use the plan without repeating recognized replacements. Explicit SIP addresses and call-window redial are used as stored.";
+
+"Local Contacts" = "Local Contacts";
+
+"Local Contacts…" = "Local Contacts…";
+
+"Name" = "Name";
+
+"New" = "New";
+
+"Delete this contact?" = "Delete this contact?";
+
+"Saved only in SwiftDial. Enter the original number, without the dial-plan prefix." = "Saved only in SwiftDial. Enter the original number, without the dial-plan prefix.";
+
+"Enter a name and a valid phone number." = "Enter a name and a valid phone number.";
+
+"This number is already saved." = "This number is already saved.";
+
+"Save Contact…" = "Save Contact…";
+
+"Replace the current contact form?" = "Replace the current contact form?";
+
+"Unsaved changes in the form will be discarded." = "Unsaved changes in the form will be discarded.";
+
+"Continue" = "Continue";
+
+"Check the original number before saving; recovery uses the current dial plan." = "Check the original number before saving; recovery uses the current dial plan.";
+
+"No account is available to place this call." = "No account is available to place this call.";
+
+/* Edit a history number without calling. */
+"Correct Number" = "Nummer korrigieren";
+
+"Connected" = "Verbunden";
+"Unknown Contact" = "Unbekannter Kontakt";
+"Transfer…" = "Übergeben…";
+"Call Again" = "Erneut anrufen";

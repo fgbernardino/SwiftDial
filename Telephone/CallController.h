@@ -63,6 +63,10 @@
 // Remote party dislpay name.
 @property(nonatomic, copy) NSString *displayedName;
 
+@property(nonatomic, readonly) NSString *formattedNumber;
+@property(nonatomic, readonly) NSString *contactName;
+@property(nonatomic, copy) NSString *elapsedTime;
+
 // Call status.
 @property(nonatomic, copy) NSString *status;
 

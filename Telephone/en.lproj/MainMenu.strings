@@ -14,14 +14,14 @@
 /* Class = "NSMenu"; title = "AMainMenu"; ObjectID = "29"; */
 "29.title" = "AMainMenu";
 
-/* Class = "NSMenuItem"; title = "Telephone"; ObjectID = "56"; */
-"56.title" = "Telephone";
+/* Class = "NSMenuItem"; title = "SwiftDial"; ObjectID = "56"; */
+"56.title" = "SwiftDial";
 
-/* Class = "NSMenu"; title = "Telephone"; ObjectID = "57"; */
-"57.title" = "Telephone";
+/* Class = "NSMenu"; title = "SwiftDial"; ObjectID = "57"; */
+"57.title" = "SwiftDial";
 
-/* Class = "NSMenuItem"; title = "About Telephone"; ObjectID = "58"; */
-"58.title" = "About Telephone";
+/* Class = "NSMenuItem"; title = "About SwiftDial"; ObjectID = "58"; */
+"58.title" = "About SwiftDial";
 
 /* Class = "NSMenuItem"; title = "Close Window"; ObjectID = "73"; */
 "73.title" = "Close Window";
@@ -47,11 +47,11 @@
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "131"; */
 "131.title" = "Services";
 
-/* Class = "NSMenuItem"; title = "Hide Telephone"; ObjectID = "134"; */
-"134.title" = "Hide Telephone";
+/* Class = "NSMenuItem"; title = "Hide SwiftDial"; ObjectID = "134"; */
+"134.title" = "Hide SwiftDial";
 
-/* Class = "NSMenuItem"; title = "Quit Telephone"; ObjectID = "136"; */
-"136.title" = "Quit Telephone";
+/* Class = "NSMenuItem"; title = "Quit SwiftDial"; ObjectID = "136"; */
+"136.title" = "Quit SwiftDial";
 
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "145"; */
 "145.title" = "Hide Others";
@@ -137,8 +137,6 @@
 /* Class = "NSMenuItem"; title = "Copy Settings"; ObjectID = "koB-sa-kzQ"; */
 "koB-sa-kzQ.title" = "Copy Settings";
 
-/* Class = "NSMenuItem"; title = "Telephone Pro…"; ObjectID = "rMu-ch-wsu"; */
-"rMu-ch-wsu.title" = "Telephone Pro…";
 
 /* Class = "NSMenuItem"; title = "Keep on Top"; ObjectID = "vyI-5q-SG2"; */
 "vyI-5q-SG2.title" = "Keep on Top";

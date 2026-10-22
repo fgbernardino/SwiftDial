@@ -38,6 +38,8 @@
 
 #import "Telephone-Swift.h"
 
+@import UserNotifications;
+
 NSString * const kEmailSIPLabel = @"sip";
 static NSString * const kRussian = @"ru";
 
@@ -181,9 +183,7 @@ static NSString * const kRussian = @"ru";
                          userAgent:(AKSIPUserAgent *)userAgent
                   ringtonePlayback:(id<RingtonePlaybackUseCase>)ringtonePlayback
                        sleepStatus:(WorkspaceSleepStatus *)sleepStatus
- callHistoryViewEventTargetFactory:(AsyncCallHistoryViewEventTargetFactory *)callHistoryViewEventTargetFactory
-       purchaseCheckUseCaseFactory:(AsyncCallHistoryPurchaseCheckUseCaseFactory *)purchaseCheckUseCaseFactory
-              storeWindowPresenter:(StoreWindowPresenter *)storeWindowPresenter{
+ callHistoryViewEventTargetFactory:(AsyncCallHistoryViewEventTargetFactory *)callHistoryViewEventTargetFactory {
 
     self = [super init];
     if (self == nil) {
@@ -204,9 +204,7 @@ static NSString * const kRussian = @"ru";
     = [[AccountViewController alloc] initWithActiveAccountViewController:[[ActiveAccountViewController alloc] initWithAccountController:self]
                                                callHistoryViewController:[[CallHistoryViewController alloc] init]
                                        callHistoryViewEventTargetFactory:callHistoryViewEventTargetFactory
-                                             purchaseCheckUseCaseFactory:purchaseCheckUseCaseFactory
-                                                                 account:[[AccountControllerToAccountAdapter alloc] initWithController:self]
-                                                    storeWindowPresenter:storeWindowPresenter];
+                                                                 account:[[AccountControllerToAccountAdapter alloc] initWithController:self]];
     _windowController = [[AccountWindowController alloc] initWithAccountDescription:_accountDescription
                                                                          SIPAddress:_account.SIPAddress
                                                               accountViewController:_accountViewController
@@ -262,6 +260,19 @@ static NSString * const kRussian = @"ru";
 - (void)makeCallToURI:(AKSIPURI *)destinationURI
         phoneLabel:(NSString *)phoneLabel
         callTransferController:(CallTransferController *)callTransferController {
+    [self makeCallToURI:destinationURI phoneLabel:phoneLabel callTransferController:callTransferController fromHistory:NO];
+}
+
+- (void)makeCallFromHistoryToURI:(AKSIPURI *)destinationURI phoneLabel:(NSString *)phoneLabel {
+    if (self.isAccountAdded) {
+        [self makeCallToURI:destinationURI phoneLabel:phoneLabel callTransferController:nil fromHistory:YES];
+    }
+}
+
+- (void)makeCallToURI:(AKSIPURI *)destinationURI
+        phoneLabel:(NSString *)phoneLabel
+        callTransferController:(CallTransferController *)callTransferController
+        fromHistory:(BOOL)fromHistory {
     
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     AKTelephoneNumberFormatter *telephoneNumberFormatter = [[AKTelephoneNumberFormatter alloc] init];
@@ -275,8 +286,26 @@ static NSString * const kRussian = @"ru";
         [destinationURI setUser:[telephoneNumberFormatter telephoneNumberFromString:[destinationURI user]]];
     }
     
+    // History cannot distinguish explicit SIP input from an account-appended host; preserve both.
+    if ([destinationURI.user ak_isTelephoneNumber] && destinationURI.host.length == 0) {
+        NSError *error;
+        NSString *number = [DialPlan transformNumber:destinationURI.user accountID:self.account.uuid fromHistory:fromHistory
+                                  plusSubstitution:self.substitutesPlusCharacter ? self.plusCharacterSubstitution : nil error:&error];
+        if (number == nil) {
+            NSAlert *alert = [[NSAlert alloc] init];
+            alert.messageText = NSLocalizedString(@"Call blocked", @"Dial plan blocked a call");
+            alert.informativeText = error.localizedDescription;
+            [alert runModal];
+            return;
+        }
+        if (![number isEqualToString:destinationURI.user]) {
+            enteredCallDestinationString = number;
+        }
+        destinationURI.user = number;
+    }
+
     // Replace plus character if needed.
-    if ([self substitutesPlusCharacter] &&
+    if (!(fromHistory && destinationURI.host.length > 0) && [self substitutesPlusCharacter] &&
         [[destinationURI user] hasPrefix:@"+"]) {
         [destinationURI setUser:[[destinationURI user]
                                  stringByReplacingCharactersInRange:NSMakeRange(0, 1)
@@ -297,6 +326,8 @@ static NSString * const kRussian = @"ru";
         aCallController = callTransferController;
     }
     
+    NSString *localName = [LocalContacts.shared nameForNumber:destinationURI.user accountID:self.account.uuid];
+    if (localName.length > 0) { destinationURI.displayName = localName; }
     [aCallController setNameFromAddressBook:[destinationURI displayName]];
     [aCallController setPhoneLabelFromAddressBook:phoneLabel];
     [aCallController setEnteredCallDestination:enteredCallDestinationString];
@@ -531,7 +562,7 @@ static NSString * const kRussian = @"ru";
 
             [[[self authenticationFailureController] informativeText] setStringValue:
              [NSString stringWithFormat:
-              NSLocalizedString(@"Telephone was unable to login to %@. "
+              NSLocalizedString(@"SwiftDial was unable to login to %@. "
                                  "Change user name or password and try again.",
                                 @"Registrar authentication failed."),
               [[self account] registrar]]];
@@ -639,6 +670,8 @@ static NSString * const kRussian = @"ru";
                                                "now. Call status string. Deliberately in lower case, "
                                                "translators should do the same, if possible.");
 
+    NSString *localName = [LocalContacts.shared nameForNumber:aCall.remoteURI.user accountID:self.account.uuid];
+    if (localName.length == 0) {
     // Search Address Book for caller's name.
     
     ABAddressBook *AB = [ABAddressBook sharedAddressBook];
@@ -793,6 +826,10 @@ static NSString * const kRussian = @"ru";
         }
     }
     
+    } else {
+        finalDisplayedName = localName;
+        [aCallController setNameFromAddressBook:localName];
+    }
     // Address Book search ends here.
     
     [aCallController setTitle:([[aCall remoteURI] SIPAddress] ?: @"")];
@@ -851,14 +888,19 @@ static NSString * const kRussian = @"ru";
                                  "the same, if possible.");
     }
     
-    NSUserNotification *userNotification = [[NSUserNotification alloc] init];
-    userNotification.identifier = aCallController.identifier;
-    userNotification.title = notificationTitle;
-    userNotification.informativeText = notificationDescription;
-    userNotification.actionButtonTitle = NSLocalizedString(@"Answer", @"Call answer button.");
-    NSString *decline = NSLocalizedString(@"Decline", @"Call decline button.");
-    userNotification.additionalActions = @[[NSUserNotificationAction actionWithIdentifier:@"decline" title:decline]];
-    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:userNotification];
+    UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+    content.title = notificationTitle;
+    content.body = notificationDescription;
+    content.categoryIdentifier = @"incoming-call";
+    UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:aCallController.identifier
+                                                                         content:content
+                                                                         trigger:nil];
+    [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:request
+                                                          withCompletionHandler:^(NSError *error) {
+        if (error) {
+            NSLog(@"Could not deliver call notification (code %ld).", (long)error.code);
+        }
+    }];
 
     [self startPlayingRingtoneOrLogError];
     

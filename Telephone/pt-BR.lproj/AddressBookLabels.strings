@@ -1,0 +1,11 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"home" = "casa";
+"home fax" = "fax residencial";
+"main" = "principal";
+"mobile" = "celular";
+"other" = "outro";
+"pager" = "pager";
+"sip" = "SIP";
+"work" = "trabalho";
+"work fax" = "fax do trabalho";

@@ -22,6 +22,24 @@ import UseCasesTestDoubles
 
 @CallHistoryActor
 struct PersistentCallHistoryTests {
+    @Test func preservesMoreThanOneThousandRecordsAfterReloadAndAppend() {
+        let storage = MemoryPropertyListStorage()
+        let factory = CallHistoryRecordTestFactory()
+        let records = (1...1001).map { factory.makeRecord(number: $0) }
+        var sut = PersistentCallHistory(origin: TruncatingCallHistory(), storage: storage)
+        for record in records {
+            sut.add(record)
+        }
+
+        sut = PersistentCallHistory(origin: TruncatingCallHistory(), storage: storage)
+        #expect(sut.allRecords == records)
+
+        let next = factory.makeRecord(number: 1002)
+        sut.add(next)
+        sut = PersistentCallHistory(origin: TruncatingCallHistory(), storage: storage)
+        #expect(sut.allRecords == records + [next])
+    }
+
     @Test func persistsAfterAdding() {
         let storage = MemoryPropertyListStorage()
         let record1 = makeRecord1()

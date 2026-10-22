@@ -1,0 +1,7 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"CFBundleDisplayName" = "SwiftDial";
+"CFBundleName" = "SwiftDial";
+"NSAppleEventsUsageDescription" = "Permite pausar a reprodução de música durante as chamadas.";
+"NSContactsUsageDescription" = "Os dados dos seus contatos permitem exibir nomes e tipos de telefone e completar números automaticamente.";
+"NSMicrophoneUsageDescription" = "O microfone é usado nas chamadas.";

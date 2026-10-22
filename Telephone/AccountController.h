@@ -26,8 +26,8 @@
 extern NSString * const kEmailSIPLabel;
 
 @class AKSIPURI, AKNetworkReachability;
-@class AsyncCallHistoryPurchaseCheckUseCaseFactory, AsyncCallHistoryViewEventTargetFactory;
-@class CallTransferController, SanitizedCallDestination, StoreWindowPresenter, WorkspaceSleepStatus;
+@class AsyncCallHistoryViewEventTargetFactory;
+@class CallTransferController, SanitizedCallDestination, WorkspaceSleepStatus;
 @protocol RingtonePlaybackUseCase;
 
 @interface AccountController : NSObject <AKSIPAccountDelegate, CallControllerDelegate>
@@ -55,9 +55,7 @@ extern NSString * const kEmailSIPLabel;
                          userAgent:(AKSIPUserAgent *)userAgent
                   ringtonePlayback:(id<RingtonePlaybackUseCase>)ringtonePlayback
                        sleepStatus:(WorkspaceSleepStatus *)sleepStatus
- callHistoryViewEventTargetFactory:(AsyncCallHistoryViewEventTargetFactory *)callHistoryViewEventTargetFactory
-       purchaseCheckUseCaseFactory:(AsyncCallHistoryPurchaseCheckUseCaseFactory *)purchaseCheckUseCaseFactory
-              storeWindowPresenter:(StoreWindowPresenter *)storeWindowPresenter;
+ callHistoryViewEventTargetFactory:(AsyncCallHistoryViewEventTargetFactory *)callHistoryViewEventTargetFactory;
 
 - (void)registerAccount;
 - (void)unregisterAccount;
@@ -73,6 +71,8 @@ extern NSString * const kEmailSIPLabel;
         callTransferController:(CallTransferController *)callTransferController;
 
 - (void)makeCallToURI:(AKSIPURI *)destinationURI phoneLabel:(NSString *)phoneLabel;
+
+- (void)makeCallFromHistoryToURI:(AKSIPURI *)destinationURI phoneLabel:(NSString *)phoneLabel;
 
 - (void)makeCallToDestinationRegisteringAccountIfNeeded:(SanitizedCallDestination *)destination;
 

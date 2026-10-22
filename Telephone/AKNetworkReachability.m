@@ -18,34 +18,17 @@
 
 #import "AKNetworkReachability.h"
 
-#import <netinet/in.h>
-#import <arpa/inet.h>
-
-@import UseCases;
-
+@import Network;
 
 NSString * const AKNetworkReachabilityDidBecomeReachableNotification = @"AKNetworkReachabilityDidBecomeReachable";
 NSString * const AKNetworkReachabilityDidBecomeUnreachableNotification = @"AKNetworkReachabilityDidBecomeUnreachable";
 
-// SCNetworkReachability callback.
-static void AKReachabilityChanged(SCNetworkReachabilityRef target, SCNetworkConnectionFlags flags, void *info);
-
-
 @interface AKNetworkReachability ()
-
 @property(nonatomic, copy) NSString *host;
-
+@property(nonatomic, strong) nw_path_monitor_t monitor;
 @end
 
-
 @implementation AKNetworkReachability
-
-- (BOOL)isReachable {
-    SCNetworkConnectionFlags flags;
-    Boolean flagsValid = SCNetworkReachabilityGetFlags(_reachability, &flags);
-    
-    return (flagsValid && (flags & kSCNetworkFlagsReachable)) ? YES : NO;
-}
 
 + (AKNetworkReachability *)networkReachabilityWithHost:(NSString *)nameOrAddress {
     return [[self alloc] initWithHost:nameOrAddress];
@@ -53,78 +36,31 @@ static void AKReachabilityChanged(SCNetworkReachabilityRef target, SCNetworkConn
 
 - (instancetype)initWithHost:(NSString *)nameOrAddress {
     self = [super init];
-    if (self == nil) {
-        return nil;
-    }
-    
-    if ([nameOrAddress length] == 0) {
-        return nil;
-    }
-    
-    if ([nameOrAddress ak_isIP4Address]) {
-        struct sockaddr_in sin;
-        bzero(&sin, sizeof(sin));
-        sin.sin_len = sizeof(sin);
-        sin.sin_family = AF_INET;
-        inet_pton(AF_INET, [nameOrAddress UTF8String], &sin.sin_addr);
-        _reachability = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (struct sockaddr *)&sin);
-    } else if ([nameOrAddress ak_isIP6Address]) {
-        struct sockaddr_in6 sin;
-        bzero(&sin, sizeof(sin));
-        sin.sin6_len = sizeof(sin);
-        sin.sin6_family = AF_INET6;
-        inet_pton(AF_INET6, [nameOrAddress UTF8String], &sin.sin6_addr);
-        _reachability = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (struct sockaddr *)&sin);
-    } else {
-        _reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, [nameOrAddress UTF8String]);
-    }
-    
-    _context.info = (__bridge void *)(self);
-    Boolean callbackSet = SCNetworkReachabilitySetCallback(_reachability, &AKReachabilityChanged, &_context);
-    if (!callbackSet) {
-        if (_reachability) {
-            CFRelease(_reachability);
-        }
-        return nil;
-    }
-    
-    Boolean scheduled = SCNetworkReachabilityScheduleWithRunLoop(_reachability,
-                                                                 CFRunLoopGetMain(),
-                                                                 kCFRunLoopDefaultMode);
-    if (!scheduled) {
-        if (_reachability) {
-            CFRelease(_reachability);
-        }
-        return nil;
-    }
-    
-    [self setHost:nameOrAddress];
-    
+    if (self == nil || nameOrAddress.length == 0) { return nil; }
+    _host = [nameOrAddress copy];
+    _monitor = nw_path_monitor_create();
+    __weak AKNetworkReachability *weakSelf = self;
+    nw_path_monitor_set_update_handler(_monitor, ^(nw_path_t path) {
+        [weakSelf pathStatusChanged:nw_path_get_status(path)];
+    });
+    nw_path_monitor_set_queue(_monitor, dispatch_get_main_queue());
+    nw_path_monitor_start(_monitor);
     return self;
 }
 
+- (void)pathStatusChanged:(nw_path_status_t)status {
+    BOOL canAttemptConnection = status == nw_path_status_satisfied || status == nw_path_status_satisfiable;
+    [[NSNotificationCenter defaultCenter] postNotificationName:canAttemptConnection
+        ? AKNetworkReachabilityDidBecomeReachableNotification
+        : AKNetworkReachabilityDidBecomeUnreachableNotification object:self];
+}
+
 - (void)dealloc {
-    SCNetworkReachabilityUnscheduleFromRunLoop(_reachability, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
-    if (_reachability) {
-        CFRelease(_reachability);
-    }
+    if (_monitor != nil) { nw_path_monitor_cancel(_monitor); }
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@ reachability", [self host]];
+    return [NSString stringWithFormat:@"%@ network path monitor", self.host];
 }
 
 @end
-
-
-static void AKReachabilityChanged(SCNetworkReachabilityRef target, SCNetworkConnectionFlags flags, void *info) {
-    AKNetworkReachability *networkReachability = (__bridge AKNetworkReachability *)info;
-    
-    if (flags & kSCNetworkFlagsReachable) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:AKNetworkReachabilityDidBecomeReachableNotification
-                                                            object:networkReachability];
-    } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:AKNetworkReachabilityDidBecomeUnreachableNotification
-                                                            object:networkReachability];
-    }
-}

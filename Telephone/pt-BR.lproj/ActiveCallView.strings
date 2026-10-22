@@ -1,0 +1,9 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"122.ibShadowedToolTip" = "Encerrar chamada";
+"60.title" = "Nome de exibição";
+"62.title" = "Estado";
+
+"123.title" = "Encerrar";
+"mute-cell.title" = "Silenciar";
+"transfer-cell.title" = "Transferir…";

@@ -1,0 +1,16 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"1.title" = "Configurar conta";
+"103.title" = "Informe os dados da conta fornecidos pelo seu provedor SIP.";
+"11.placeholderString" = "João Silva";
+"17.title" = "Nome completo:";
+"26.title" = "Usuário:";
+"27.placeholderString" = "joao";
+"3.title" = "Caixa";
+"30.title" = "Senha:";
+"43.placeholderString" = "Obrigatório";
+"5.title" = "Concluir";
+"69.placeholderString" = "example.com";
+"7.title" = "Cancelar";
+"71.title" = "Domínio:";
+"9.title" = "Configurar conta SIP";

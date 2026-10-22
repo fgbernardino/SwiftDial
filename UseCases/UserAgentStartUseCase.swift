@@ -20,37 +20,16 @@ import Foundation
 
 @MainActor
 public final class UserAgentStartUseCase: Sendable {
-    private lazy var purchaseCheck = factory.make(output: WeakPurchaseCheckUseCaseOutput(origin: self))
-
     private let agent: UserAgent
-    private let factory: PurchaseCheckUseCaseFactory
 
-    public init(agent: UserAgent, factory: PurchaseCheckUseCaseFactory) {
+    public init(agent: UserAgent) {
         self.agent = agent
-        self.factory = factory
     }
 }
 
 extension UserAgentStartUseCase: UseCase {
     public func execute() {
-        Task {
-            await purchaseCheck.execute()
-        }
-    }
-}
-
-nonisolated extension UserAgentStartUseCase: PurchaseCheckUseCaseOutput {
-    public func didCheckPurchase() {
-        Task { @MainActor in
-            agent.maxCalls = 30
-            agent.start()
-        }
-    }
-
-    public func didFailCheckingPurchase() {
-        Task { @MainActor in
-            agent.maxCalls = 3
-            agent.start()
-        }
+        agent.maxCalls = 30
+        agent.start()
     }
 }

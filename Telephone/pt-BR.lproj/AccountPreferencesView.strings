@@ -1,0 +1,33 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"106.title" = "Senha:";
+"107.title" = "Usuário:";
+"108.title" = "Servidor de registro:";
+"109.title" = "Endereço SIP:";
+"110.title" = "Nome completo:";
+"1o3-z9-WKa.title" = "IPv6";
+"410.label" = "Dados da conta";
+"411.label" = "Avançado";
+"417.title" = "Substituir “+” por";
+"498.title" = "Renovar a cada:";
+"4sK-wA-Wvg.label" = "Rede";
+"500.placeholderString" = "300";
+"502.title" = "segundos";
+"531.title" = "Domínio:";
+"537.title" = "Descrição:";
+"549.title" = "Desative a conta para alterar os ajustes.";
+"84.headerCell.title" = "Contas";
+"87.title" = "Célula de texto";
+"94.title" = "Ativar esta conta";
+"IzX-Uj-vdk.title" = "TLS";
+"JLI-nw-iSd.title" = "Atualizar endereço IP";
+"NLa-ky-J6j.title" = "Transporte SIP:";
+"Rvl-Ak-TcN.title" = "Porta:";
+"UaG-kv-64m.title" = "UDP";
+"UdE-Fh-xcJ.title" = "Servidor:";
+"Vt8-KJ-lWw.title" = "TCP";
+"b3l-l7-0RV.title" = "Esta opção pode resolver problemas de áudio.";
+"hz7-2i-Yb0.title" = "Conectar via proxy";
+"nF4-3B-Ugx.placeholderString" = "5060";
+"s73-C1-OzC.title" = "IPv4";
+"z2G-4l-57d.title" = "Versão do IP:";

@@ -14,14 +14,14 @@
 /* Class = "NSMenu"; title = "AMainMenu"; ObjectID = "29"; */
 "29.title" = "AMainMenu";
 
-/* Class = "NSMenuItem"; title = "Telephone"; ObjectID = "56"; */
-"56.title" = "SIP-Телефон";
+/* Class = "NSMenuItem"; title = "SwiftDial"; ObjectID = "56"; */
+"56.title" = "SwiftDial";
 
-/* Class = "NSMenu"; title = "Telephone"; ObjectID = "57"; */
-"57.title" = "SIP-Телефон";
+/* Class = "NSMenu"; title = "SwiftDial"; ObjectID = "57"; */
+"57.title" = "SwiftDial";
 
-/* Class = "NSMenuItem"; title = "About Telephone"; ObjectID = "58"; */
-"58.title" = "О Телефоне";
+/* Class = "NSMenuItem"; title = "About SwiftDial"; ObjectID = "58"; */
+"58.title" = "О SwiftDial";
 
 /* Class = "NSMenuItem"; title = "Close Window"; ObjectID = "73"; */
 "73.title" = "Закрыть окно";
@@ -47,11 +47,11 @@
 /* Class = "NSMenuItem"; title = "Services"; ObjectID = "131"; */
 "131.title" = "Службы";
 
-/* Class = "NSMenuItem"; title = "Hide Telephone"; ObjectID = "134"; */
-"134.title" = "Скрыть Телефон";
+/* Class = "NSMenuItem"; title = "Hide SwiftDial"; ObjectID = "134"; */
+"134.title" = "Скрыть SwiftDial";
 
-/* Class = "NSMenuItem"; title = "Quit Telephone"; ObjectID = "136"; */
-"136.title" = "Выйти из Телефона";
+/* Class = "NSMenuItem"; title = "Quit SwiftDial"; ObjectID = "136"; */
+"136.title" = "Выйти из SwiftDial";
 
 /* Class = "NSMenuItem"; title = "Hide Others"; ObjectID = "145"; */
 "145.title" = "Скрыть остальные";
@@ -137,8 +137,6 @@
 /* Class = "NSMenuItem"; title = "Copy Settings"; ObjectID = "koB-sa-kzQ"; */
 "koB-sa-kzQ.title" = "Копировать настройки";
 
-/* Class = "NSMenuItem"; title = "Telephone Pro…"; ObjectID = "rMu-ch-wsu"; */
-"rMu-ch-wsu.title" = "Расширенные возможности…";
 
 /* Class = "NSMenuItem"; title = "Keep on Top"; ObjectID = "vyI-5q-SG2"; */
 "vyI-5q-SG2.title" = "Держать сверху";

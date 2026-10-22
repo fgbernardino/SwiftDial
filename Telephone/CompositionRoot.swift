@@ -18,8 +18,6 @@
 
 import Contacts
 import Foundation
-import StoreKit
-import SwiftUI
 import UseCases
 
 @MainActor
@@ -27,14 +25,11 @@ final class CompositionRoot: NSObject {
     @objc let userAgent: AKSIPUserAgent
     @objc let preferencesController: PreferencesController
     @objc let ringtonePlayback: RingtonePlaybackUseCase
-    @objc let storeWindowPresenter: StoreWindowPresenter
-    @objc let purchaseReminder: PurchaseReminderUseCase
     @objc let userAgentStart: UseCase
     @objc let settingsMigration: ProgressiveSettingsMigration
     @objc let orphanLogFileRemoval: OrphanLogFileRemoval
     @objc let workstationSleepStatus: WorkspaceSleepStatus
     @objc let callHistoryViewEventTargetFactory: AsyncCallHistoryViewEventTargetFactory
-    @objc let callHistoryPurchaseCheckUseCaseFactory: AsyncCallHistoryPurchaseCheckUseCaseFactory
     @objc let logFileURL: LogFileURL
     @objc let defaultAppSettings: DefaultAppSettings
     @objc let helpMenuActionTarget: HelpMenuActionTarget
@@ -42,7 +37,6 @@ final class CompositionRoot: NSObject {
     @objc let nameServers: NameServers
     private let defaults: UserDefaults
 
-    private let storeEventSource: StoreKitTransactionStoreEventSource
     private let userAgentEventSource: AKSIPUserAgentEventSource
     private let devicesChangeEventSource: CoreAudioSystemAudioDevicesChangeEventSource
     private let soundIOChangeEventSource: CoreAudioDefaultSystemSoundIOChangeEventSource
@@ -51,7 +45,7 @@ final class CompositionRoot: NSObject {
     private let contactsChangeEventSource: Any
     private let dayChangeEventSource: NSCalendarDayChangeEventSource
 
-    @objc init(preferencesControllerDelegate: PreferencesControllerDelegate, nameServersChangeEventTarget: NameServersChangeEventTarget, storeEventTarget: ObjCStoreEventTarget) {
+    @objc init(preferencesControllerDelegate: PreferencesControllerDelegate, nameServersChangeEventTarget: NameServersChangeEventTarget) {
         userAgent = AKSIPUserAgent.shared()
         defaults = UserDefaults.standard
 
@@ -80,24 +74,7 @@ final class CompositionRoot: NSObject {
             delegate: userAgent
         )
 
-        let receipt = StoreKitTransactionReceipt()
-
-        let storeEventTargets = StoreEventTargets(targets: [ObjCStoreEventTargetAdapter(target: storeEventTarget)])
-
-        storeWindowPresenter = StoreWindowPresenter(controller: StoreWindowController(contentViewController: NSHostingController(rootView: StoreKitStoreView(target: storeEventTargets))))
-
-        purchaseReminder = PurchaseReminderUseCase(
-            accounts: SettingsAccounts(settings: defaults),
-            receipt: receipt,
-            settings: UserDefaultsPurchaseReminderSettings(defaults: defaults),
-            now: Date(),
-            version: Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String,
-            output: storeWindowPresenter
-        )
-
-        userAgentStart = UserAgentStartUseCase(agent: userAgent, factory: PurchaseCheckUseCaseFactory(receipt: receipt))
-
-        storeEventSource = StoreKitTransactionStoreEventSource(target: storeEventTargets)
+        userAgentStart = UserAgentStartUseCase(agent: userAgent)
 
         let userAgentEventsUserAgentSoundIOSelection = UserAgentEventsUserAgentSoundIOSelectionUseCase(
             useCase: UserAgentSoundIOSelectionUseCase(
@@ -167,7 +144,7 @@ final class CompositionRoot: NSObject {
             factory: NotifyingCallHistoryFactory(
                 origin: ReversedCallHistoryFactory(
                     origin: PersistentCallHistoryFactory(
-                        history: TruncatingCallHistoryFactory(limit: 1000),
+                        history: TruncatingCallHistoryFactory(),
                         storage: SimplePropertyListStorageFactory(manager: FileManager.default),
                         locations: applicationDataLocations
                     )
@@ -226,19 +203,13 @@ final class CompositionRoot: NSObject {
                 histories: callHistories,
                 index: contactMatchingIndex,
                 settings: contactMatchingSettings,
-                receipt: receipt,
                 dateFormatter: ShortRelativeDateTimeFormatter(),
                 durationFormatter: DurationFormatter(),
-                storeEventTargets: storeEventTargets,
                 dayChangeEventTargets: dayChangeEventTargets
             )
         )
 
-        callHistoryPurchaseCheckUseCaseFactory = AsyncCallHistoryPurchaseCheckUseCaseFactory(
-            origin: CallHistoryPurchaseCheckUseCaseFactory(histories: callHistories, receipt: receipt)
-        )
-
-        logFileURL = LogFileURL(locations: applicationDataLocations, filename: "Telephone.log")
+        logFileURL = LogFileURL(locations: applicationDataLocations, filename: "SwiftDial.log")
 
         defaultAppSettings = DefaultAppSettings(
             settings: defaults, localization: Bundle.main.preferredLocalizations.first ?? ""

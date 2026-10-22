@@ -55,6 +55,8 @@ extern NSString * const kPhoneLabel;
 // Changes the active SIP URI index in the call destination token.
 - (IBAction)changeCallDestinationURIIndex:(id)sender;
 
+- (void)editNumberInDialPad:(NSString *)number fromHistory:(BOOL)fromHistory;
+
 - (void)allowCallDestinationInput;
 - (void)disallowCallDestinationInput;
 

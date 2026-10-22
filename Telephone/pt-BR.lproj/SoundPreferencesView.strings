@@ -1,0 +1,12 @@
+/* Português (Brasil). Keep localization keys and format specifiers unchanged. */
+
+"211.title" = "Entrada de áudio:";
+"213.title" = "Saída de áudio:";
+"216.title" = "Outras visualizações";
+"222.title" = "Outras visualizações";
+"276.title" = "Toque:";
+"279.title" = "Outras visualizações";
+"2bR-wc-3xa.title" = "Usar apenas o codec G.711";
+"346.title" = "Salve os toques em ~/Library/Sounds";
+"476.title" = "Outras visualizações";
+"477.title" = "Saída do toque:";

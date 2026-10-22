@@ -34,6 +34,21 @@ final class DialPadViewControllerTests: XCTestCase {
         XCTAssertEqual(result, "119*#+")
     }
 
+    func testCorrectedHistoryNumberDoesNotRepeatRoutingPrefix() throws {
+        let plan = try DialPlan("<0:043>x.")
+        var result: String?
+        let sut = DialPadViewController(destination: "0434133334444") {
+            result = try? plan.apply(to: $0, fromHistory: true)
+        }
+        let keys = buttons(in: sut.view)
+        keys.first { $0.title == "⌫" }!.performClick(nil)
+        keys.first { $0.title == "5" }!.performClick(nil)
+        XCTAssertNil(result)
+        keys.last!.performClick(nil)
+        XCTAssertEqual(result, "0434133334445")
+        XCTAssertEqual(try plan.apply(to: "0434133334445"), "043434133334445")
+    }
+
     func testEmptyDestinationDoesNotDial() {
         var didDial = false
         let sut = DialPadViewController(destination: "") { _ in didDial = true }

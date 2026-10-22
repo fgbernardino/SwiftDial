@@ -117,12 +117,20 @@ NSString * const kPhoneLabel = @"PhoneLabel";
 }
 
 - (void)dialDestination:(NSString *)destination {
+    [self dialDestination:destination fromHistory:NO];
+}
+
+- (void)dialDestination:(NSString *)destination fromHistory:(BOOL)fromHistory {
     if (!self.allowsCallDestinationInput) { return; }
     id represented = [self tokenField:self.callDestinationField representedObjectForEditingString:destination];
     if (represented == nil) { return; }
     self.callDestinationURIIndex = 0;
     self.callDestinationField.objectValue = @[represented];
-    [self makeCall:self];
+    if (fromHistory) {
+        [self.accountController makeCallFromHistoryToURI:self.callDestinationURI phoneLabel:nil];
+    } else {
+        [self makeCall:self];
+    }
 }
 
 - (void)showDialPad:(NSButton *)sender {
@@ -132,16 +140,16 @@ NSString * const kPhoneLabel = @"PhoneLabel";
         return;
     }
     NSString *destination = [self canMakeCall] ? self.callDestinationURI.user : self.callDestinationField.stringValue;
-    [self editNumberInDialPad:destination];
+    [self editNumberInDialPad:destination fromHistory:NO];
 }
 
-- (void)editNumberInDialPad:(NSString *)destination {
+- (void)editNumberInDialPad:(NSString *)destination fromHistory:(BOOL)fromHistory {
     if (!self.allowsCallDestinationInput) { return; }
     [self.dialPadPopover close];
     __weak ActiveAccountViewController *weakSelf = self;
     DialPadViewController *controller = [[DialPadViewController alloc] initWithDestination:destination dial:^(NSString *number) {
         [weakSelf.dialPadPopover close];
-        [weakSelf dialDestination:number];
+        [weakSelf dialDestination:number fromHistory:fromHistory];
     }];
     self.dialPadPopover = [[NSPopover alloc] init];
     self.dialPadPopover.behavior = NSPopoverBehaviorTransient;

@@ -427,6 +427,8 @@ static const NSTimeInterval kRedialButtonReenableTime = 1.0;
 
 - (void)removeUserNotification {
     [[UNUserNotificationCenter currentNotificationCenter]
+        removePendingNotificationRequestsWithIdentifiers:@[self.identifier]];
+    [[UNUserNotificationCenter currentNotificationCenter]
         removeDeliveredNotificationsWithIdentifiers:@[self.identifier]];
 }
 

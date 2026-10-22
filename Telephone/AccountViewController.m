@@ -77,7 +77,7 @@ static NSArray<NSLayoutConstraint *> *FullSizeConstraintsForView(NSView *view);
 
     __weak ActiveAccountViewController *activeController = self.activeAccountViewController;
     self.callHistoryViewController.correctNumber = ^(NSString *number) {
-        [activeController editNumberInDialPad:number];
+        [activeController editNumberInDialPad:number fromHistory:YES];
     };
 
     [self.callHistoryView addSubview:self.callHistoryViewController.view];
